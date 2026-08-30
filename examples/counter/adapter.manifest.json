@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "agentci.adapter-manifest.v1",
+  "id": "counter.v1",
+  "version": "2.0.0",
+  "runtime": {
+    "kind": "node-esm",
+    "apiVersion": "agentci.adapter.v2",
+    "protocolVersion": 1,
+    "entry": "adapter.mjs",
+    "operationTimeoutMs": 1000,
+    "shutdownTimeoutMs": 250
+  },
+  "bundle": {
+    "root": "adapter.bundle"
+  },
+  "contract": {
+    "tools": ["counter.increment"]
+  },
+  "target": {
+    "kind": "synthetic",
+    "reason": "Self-contained adapter-host integration example",
+    "configuration": {
+      "namespace": "counter-example"
+    }
+  },
+  "credentials": {
+    "environment": []
+  }
+}

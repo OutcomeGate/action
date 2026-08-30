@@ -1,0 +1,9 @@
+{
+  "name": "counter.increment",
+  "input": {
+    "type": "object",
+    "required": ["delta"],
+    "properties": { "delta": { "type": "number" } },
+    "additionalProperties": false
+  }
+}

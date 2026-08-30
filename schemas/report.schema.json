@@ -1,0 +1,506 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-ci.invalid/schemas/report.v3.json",
+  "$comment": "Informative pilot sketch. Runtime structural and internal-digest checks plus evidence-digest verification in src/report.ts are authoritative.",
+  "title": "Agent CI release report v3",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "generatedAt",
+    "durationMs",
+    "suite",
+    "release",
+    "adapter",
+    "evaluator",
+    "scenarios",
+    "decision",
+    "evidenceDigest"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "agentci.report.v3" },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "durationMs": { "type": "number", "minimum": 0 },
+    "suite": {
+      "type": "object",
+      "required": ["name", "version", "path", "digest", "fixture"],
+      "properties": {
+        "name": { "type": "string" },
+        "version": { "type": "string" },
+        "path": { "type": "string" },
+        "digest": { "$ref": "#/$defs/digest" },
+        "fixture": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "release": {
+      "oneOf": [
+        { "$ref": "#/$defs/entryRelease" },
+        { "$ref": "#/$defs/manifestRelease" }
+      ]
+    },
+    "adapter": { "$ref": "#/$defs/adapterIdentity" },
+    "evaluator": {
+      "type": "object",
+      "required": ["name", "version", "buildDigest"],
+      "properties": {
+        "name": { "const": "agent-ci" },
+        "version": { "type": "string" },
+        "buildDigest": { "$ref": "#/$defs/digest" }
+      },
+      "additionalProperties": false
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/scenario" }
+    },
+    "decision": { "$ref": "#/$defs/decision" },
+    "evidenceDigest": { "$ref": "#/$defs/digest" }
+  },
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "verdict": {
+      "enum": ["pass", "block", "indeterminate"]
+    },
+    "entryRelease": {
+      "type": "object",
+      "required": ["name", "candidatePath", "entryFileDigest", "digestScope"],
+      "properties": {
+        "name": { "type": "string" },
+        "candidatePath": { "type": "string" },
+        "entryFileDigest": { "$ref": "#/$defs/digest" },
+        "digestScope": { "const": "entry-file-only" }
+      },
+      "additionalProperties": false
+    },
+    "releaseFile": {
+      "type": "object",
+      "required": ["path", "digest", "bytes", "mode"],
+      "properties": {
+        "path": { "type": "string" },
+        "digest": { "$ref": "#/$defs/digest" },
+        "bytes": { "type": "integer", "minimum": 0 },
+        "mode": { "type": "integer", "minimum": 0, "maximum": 511 }
+      },
+      "additionalProperties": false
+    },
+    "manifestRelease": {
+      "type": "object",
+      "required": [
+        "name",
+        "candidatePath",
+        "entryFileDigest",
+        "digestScope",
+        "manifestPath",
+        "manifestDigest",
+        "releaseDigest",
+        "bundleDigest",
+        "modelDeclarationDigest",
+        "promptDigest",
+        "toolSchemaDigest",
+        "harnessDigest",
+        "entryPath",
+        "fileCount",
+        "manifest",
+        "files",
+        "execution"
+      ],
+      "properties": {
+        "name": { "type": "string" },
+        "candidatePath": { "type": "string" },
+        "entryFileDigest": { "$ref": "#/$defs/digest" },
+        "digestScope": { "const": "declared-config-and-bundle-bytes" },
+        "manifestPath": { "type": "string" },
+        "manifestDigest": { "$ref": "#/$defs/digest" },
+        "releaseDigest": { "$ref": "#/$defs/digest" },
+        "bundleDigest": { "$ref": "#/$defs/digest" },
+        "modelDeclarationDigest": { "$ref": "#/$defs/digest" },
+        "promptDigest": { "$ref": "#/$defs/digest" },
+        "toolSchemaDigest": { "$ref": "#/$defs/digest" },
+        "harnessDigest": { "$ref": "#/$defs/digest" },
+        "entryPath": { "type": "string" },
+        "fileCount": { "type": "integer", "minimum": 1 },
+        "manifest": { "type": "object" },
+        "files": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/releaseFile" }
+        },
+        "execution": {
+          "type": "object",
+          "required": ["nodeVersion", "platform", "architecture"],
+          "properties": {
+            "nodeVersion": { "type": "string" },
+            "platform": { "type": "string" },
+            "architecture": { "type": "string" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "adapterIdentity": {
+      "oneOf": [
+        { "$ref": "#/$defs/legacyAdapter" },
+        { "$ref": "#/$defs/manifestAdapter" }
+      ]
+    },
+    "legacyAdapter": {
+      "type": "object",
+      "required": [
+        "apiVersion",
+        "id",
+        "version",
+        "source",
+        "modulePath",
+        "moduleDigest",
+        "digestScope"
+      ],
+      "properties": {
+        "apiVersion": { "const": "agentci.adapter.v1" },
+        "id": { "type": "string", "minLength": 1 },
+        "version": { "type": "string" },
+        "source": { "enum": ["builtin", "external"] },
+        "modulePath": { "type": "string" },
+        "moduleDigest": { "$ref": "#/$defs/digest" },
+        "digestScope": { "const": "module-entry-only" }
+      },
+      "additionalProperties": false
+    },
+    "manifestAdapter": {
+      "type": "object",
+      "required": [
+        "apiVersion",
+        "id",
+        "version",
+        "source",
+        "digestScope",
+        "manifestDigest",
+        "bundleDigest",
+        "configurationDigest",
+        "credentialDeclarationDigest",
+        "contractDigest",
+        "adapterDigest",
+        "entryPath",
+        "entryFileDigest",
+        "fileCount",
+        "manifest",
+        "files",
+        "execution"
+      ],
+      "properties": {
+        "apiVersion": { "const": "agentci.adapter.v2" },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$"
+        },
+        "version": { "type": "string", "minLength": 1 },
+        "source": { "const": "external-manifest" },
+        "digestScope": {
+          "const": "declared-config-and-adapter-bundle-bytes"
+        },
+        "manifestDigest": { "$ref": "#/$defs/digest" },
+        "bundleDigest": { "$ref": "#/$defs/digest" },
+        "configurationDigest": { "$ref": "#/$defs/digest" },
+        "credentialDeclarationDigest": { "$ref": "#/$defs/digest" },
+        "contractDigest": { "$ref": "#/$defs/digest" },
+        "adapterDigest": { "$ref": "#/$defs/digest" },
+        "entryPath": { "$ref": "#/$defs/safePath" },
+        "entryFileDigest": { "$ref": "#/$defs/digest" },
+        "fileCount": { "type": "integer", "minimum": 1 },
+        "manifest": { "$ref": "#/$defs/adapterManifest" },
+        "files": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/adapterFile" }
+        },
+        "execution": { "$ref": "#/$defs/execution" }
+      },
+      "additionalProperties": false
+    },
+    "adapterFile": {
+      "type": "object",
+      "required": ["path", "digest", "bytes", "mode"],
+      "properties": {
+        "path": { "$ref": "#/$defs/safePath" },
+        "digest": { "$ref": "#/$defs/digest" },
+        "bytes": { "type": "integer", "minimum": 0 },
+        "mode": { "type": "integer", "minimum": 0, "maximum": 511 }
+      },
+      "additionalProperties": false
+    },
+    "adapterManifest": {
+      "type": "object",
+      "required": [
+        "schemaVersion",
+        "id",
+        "version",
+        "runtime",
+        "bundle",
+        "contract",
+        "target",
+        "credentials"
+      ],
+      "properties": {
+        "schemaVersion": { "const": "agentci.adapter-manifest.v1" },
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$"
+        },
+        "version": { "type": "string", "minLength": 1 },
+        "runtime": {
+          "type": "object",
+          "required": [
+            "kind",
+            "apiVersion",
+            "protocolVersion",
+            "entry",
+            "operationTimeoutMs",
+            "shutdownTimeoutMs"
+          ],
+          "properties": {
+            "kind": { "const": "node-esm" },
+            "apiVersion": { "const": "agentci.adapter.v2" },
+            "protocolVersion": { "const": 1 },
+            "entry": { "$ref": "#/$defs/safePath" },
+            "operationTimeoutMs": {
+              "type": "integer",
+              "minimum": 100,
+              "maximum": 60000
+            },
+            "shutdownTimeoutMs": {
+              "type": "integer",
+              "minimum": 100,
+              "maximum": 10000
+            }
+          },
+          "additionalProperties": false
+        },
+        "bundle": {
+          "type": "object",
+          "required": ["root"],
+          "properties": { "root": { "$ref": "#/$defs/safePath" } },
+          "additionalProperties": false
+        },
+        "contract": {
+          "type": "object",
+          "required": ["tools"],
+          "properties": {
+            "tools": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": { "type": "string", "minLength": 1 }
+            }
+          },
+          "additionalProperties": false
+        },
+        "target": {
+          "oneOf": [
+            { "$ref": "#/$defs/syntheticAdapterTarget" },
+            { "$ref": "#/$defs/remoteAdapterTarget" }
+          ]
+        },
+        "credentials": {
+          "type": "object",
+          "required": ["environment"],
+          "properties": {
+            "environment": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^[A-Z][A-Z0-9_]*$"
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "syntheticAdapterTarget": {
+      "type": "object",
+      "required": ["kind", "reason", "configuration"],
+      "properties": {
+        "kind": { "const": "synthetic" },
+        "reason": { "type": "string", "minLength": 1 },
+        "configuration": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+    "remoteAdapterTarget": {
+      "type": "object",
+      "required": [
+        "kind",
+        "endpoint",
+        "tenant",
+        "apiVersion",
+        "configuration"
+      ],
+      "properties": {
+        "kind": { "const": "remote" },
+        "endpoint": {
+          "type": "string",
+          "format": "uri",
+          "pattern": "^https://"
+        },
+        "tenant": { "type": "string", "minLength": 1 },
+        "apiVersion": { "type": "string", "minLength": 1 },
+        "configuration": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+    "execution": {
+      "type": "object",
+      "required": ["nodeVersion", "platform", "architecture"],
+      "properties": {
+        "nodeVersion": { "type": "string", "minLength": 1 },
+        "platform": { "type": "string", "minLength": 1 },
+        "architecture": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "safePath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*\\\\)(?!.*(?:^|/)(?:\\.|\\.\\.)(?:/|$))(?!.*//)[^/]+(?:/[^/]+)*$"
+    },
+    "assertionResult": {
+      "type": "object",
+      "required": ["id", "passed", "message"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "description": { "type": "string" },
+        "passed": { "type": "boolean" },
+        "expected": {},
+        "observed": {},
+        "message": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "event": {
+      "type": "object",
+      "required": [
+        "sequence",
+        "requestId",
+        "tool",
+        "arguments",
+        "outcome",
+        "committed",
+        "beforeStateHash",
+        "afterStateHash",
+        "durationMs"
+      ],
+      "properties": {
+        "sequence": { "type": "integer", "minimum": 1 },
+        "requestId": { "type": "string", "minLength": 1 },
+        "tool": { "type": "string", "minLength": 1 },
+        "arguments": {},
+        "outcome": { "enum": ["ok", "error"] },
+        "content": {},
+        "error": { "type": "object" },
+        "fault": { "type": "object" },
+        "committed": { "type": "boolean" },
+        "beforeStateHash": { "$ref": "#/$defs/digest" },
+        "afterStateHash": { "$ref": "#/$defs/digest" },
+        "durationMs": { "type": "number", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "scenario": {
+      "type": "object",
+      "required": [
+        "scenarioId",
+        "description",
+        "verdict",
+        "reasons",
+        "initialStateHash",
+        "finalStateHash",
+        "events",
+        "assertions",
+        "candidateDiagnostics",
+        "durationMs"
+      ],
+      "properties": {
+        "scenarioId": { "type": "string" },
+        "description": { "type": "string" },
+        "verdict": { "$ref": "#/$defs/verdict" },
+        "reasons": { "type": "array", "items": { "type": "string" } },
+        "initialStateHash": { "$ref": "#/$defs/digest" },
+        "finalStateHash": { "$ref": "#/$defs/digest" },
+        "output": {},
+        "events": { "type": "array", "items": { "$ref": "#/$defs/event" } },
+        "assertions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/assertionResult" }
+        },
+        "candidateDiagnostics": {
+          "type": "object",
+          "required": ["stderrDigest", "stderrBytes", "stderrTruncated"],
+          "properties": {
+            "stderrDigest": { "$ref": "#/$defs/digest" },
+            "stderrBytes": { "type": "integer", "minimum": 0 },
+            "stderrTruncated": { "type": "boolean" }
+          },
+          "additionalProperties": false
+        },
+        "durationMs": { "type": "number", "minimum": 0 }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": { "verdict": { "const": "pass" } },
+            "required": ["verdict"]
+          },
+          "then": {
+            "properties": {
+              "reasons": { "maxItems": 0 },
+              "assertions": {
+                "minItems": 1,
+                "items": {
+                  "allOf": [
+                    { "$ref": "#/$defs/assertionResult" },
+                    {
+                      "properties": { "passed": { "const": true } },
+                      "required": ["passed"]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "decision": {
+      "type": "object",
+      "required": [
+        "verdict",
+        "reasons",
+        "passed",
+        "blocked",
+        "indeterminate",
+        "total",
+        "passRate"
+      ],
+      "properties": {
+        "verdict": { "$ref": "#/$defs/verdict" },
+        "reasons": { "type": "array", "items": { "type": "string" } },
+        "passed": { "type": "integer", "minimum": 0 },
+        "blocked": { "type": "integer", "minimum": 0 },
+        "indeterminate": { "type": "integer", "minimum": 0 },
+        "total": { "type": "integer", "minimum": 0 },
+        "passRate": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

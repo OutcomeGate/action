@@ -1,0 +1,12 @@
+{
+  "schemaVersion": "agentci.example-tools.v1",
+  "tools": [
+    "orders.get",
+    "refunds.list",
+    "refunds.create",
+    "tickets.get",
+    "tickets.update",
+    "notifications.send",
+    "cases.escalate"
+  ]
+}

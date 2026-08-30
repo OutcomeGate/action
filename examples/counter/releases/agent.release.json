@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "agentci.release.v2",
+  "name": "counter-agent-v1",
+  "runtime": {
+    "kind": "node-jsonl",
+    "protocolVersion": 1,
+    "entry": "candidate.mjs"
+  },
+  "bundle": { "root": "agent.bundle" },
+  "model": {
+    "kind": "none",
+    "reason": "Deterministic external-adapter example."
+  },
+  "components": {
+    "prompts": ["prompt.md"],
+    "toolSchemas": ["tool-schema.json"]
+  },
+  "candidate": {
+    "credentials": { "kind": "none" }
+  }
+}

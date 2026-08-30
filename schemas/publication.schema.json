@@ -1,0 +1,182 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agent-ci.invalid/schemas/publication.v1.json",
+  "title": "Agent CI sanitized publication report v1",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "profile",
+    "sourceEvidenceDigest",
+    "suite",
+    "release",
+    "adapter",
+    "evaluator",
+    "scenarios",
+    "decision",
+    "publication",
+    "publicationDigest"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "agentci.publication.v1" },
+    "profile": { "const": "sanitized" },
+    "sourceEvidenceDigest": { "$ref": "#/$defs/digest" },
+    "suite": {
+      "type": "object",
+      "required": ["digest"],
+      "properties": {
+        "digest": { "$ref": "#/$defs/digest" }
+      },
+      "additionalProperties": false
+    },
+    "release": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["digestScope", "entryFileDigest"],
+          "properties": {
+            "digestScope": { "const": "entry-file-only" },
+            "entryFileDigest": { "$ref": "#/$defs/digest" }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["digestScope", "releaseDigest"],
+          "properties": {
+            "digestScope": { "const": "declared-config-and-bundle-bytes" },
+            "releaseDigest": { "$ref": "#/$defs/digest" }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "adapter": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["digestScope", "moduleDigest"],
+          "properties": {
+            "digestScope": { "const": "module-entry-only" },
+            "moduleDigest": { "$ref": "#/$defs/digest" }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["digestScope", "adapterDigest"],
+          "properties": {
+            "digestScope": {
+              "const": "declared-config-and-adapter-bundle-bytes"
+            },
+            "adapterDigest": { "$ref": "#/$defs/digest" }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+    "evaluator": {
+      "type": "object",
+      "required": ["name", "version", "buildDigest"],
+      "properties": {
+        "name": { "const": "agent-ci" },
+        "version": { "type": "string", "minLength": 1 },
+        "buildDigest": { "$ref": "#/$defs/digest" }
+      },
+      "additionalProperties": false
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "scenario",
+          "verdict",
+          "reasonCount",
+          "assertionsPassed",
+          "assertionsTotal",
+          "toolCallCount",
+          "candidateStderrBytes",
+          "candidateStderrTruncated"
+        ],
+        "properties": {
+          "scenario": { "type": "integer", "minimum": 1 },
+          "verdict": { "$ref": "#/$defs/verdict" },
+          "reasonCount": { "$ref": "#/$defs/nonNegativeInteger" },
+          "assertionsPassed": { "$ref": "#/$defs/nonNegativeInteger" },
+          "assertionsTotal": { "$ref": "#/$defs/nonNegativeInteger" },
+          "toolCallCount": { "$ref": "#/$defs/nonNegativeInteger" },
+          "candidateStderrBytes": { "$ref": "#/$defs/nonNegativeInteger" },
+          "candidateStderrTruncated": { "type": "boolean" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "decision": {
+      "type": "object",
+      "required": [
+        "verdict",
+        "passed",
+        "blocked",
+        "indeterminate",
+        "total",
+        "passRate"
+      ],
+      "properties": {
+        "verdict": { "$ref": "#/$defs/verdict" },
+        "passed": { "$ref": "#/$defs/nonNegativeInteger" },
+        "blocked": { "$ref": "#/$defs/nonNegativeInteger" },
+        "indeterminate": { "$ref": "#/$defs/nonNegativeInteger" },
+        "total": { "type": "integer", "minimum": 1 },
+        "passRate": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "additionalProperties": false
+    },
+    "publication": {
+      "type": "object",
+      "required": [
+        "fullEvidencePublished",
+        "rawCandidateStderrPublished",
+        "omitted",
+        "recommendedRetentionDays"
+      ],
+      "properties": {
+        "fullEvidencePublished": { "const": false },
+        "rawCandidateStderrPublished": { "const": false },
+        "omitted": {
+          "const": [
+            "adapter.manifest-and-file-inventory",
+            "candidate.stderr-digest",
+            "local.paths",
+            "logical.identifiers",
+            "release.manifest-and-file-inventory",
+            "scenario.assertion-details",
+            "scenario.descriptions",
+            "scenario.events",
+            "scenario.outputs",
+            "scenario.reasons",
+            "suite.task-and-initial-state",
+            "timing"
+          ]
+        },
+        "recommendedRetentionDays": { "const": 7 }
+      },
+      "additionalProperties": false
+    },
+    "publicationDigest": { "$ref": "#/$defs/digest" }
+  },
+  "$defs": {
+    "digest": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "verdict": {
+      "enum": ["pass", "block", "indeterminate"]
+    },
+    "nonNegativeInteger": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "additionalProperties": false
+}

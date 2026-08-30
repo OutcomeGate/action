@@ -1,0 +1,24 @@
+{
+  "name": "agent-ci-mvp",
+  "version": "0.3.0",
+  "private": true,
+  "description": "A local CI release gate for structured, tool-using agents.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "agentci": "dist/src/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run build --silent && node --test dist/test/*.test.js",
+    "demo": "npm run build --silent && node dist/scripts/demo.js",
+    "verify": "npm run typecheck && npm test && npm run demo"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "typescript": "^5.9.3"
+  }
+}

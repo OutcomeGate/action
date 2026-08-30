@@ -1,0 +1,336 @@
+name: Agent CI release gate
+description: Run a declared agent suite as a fail-closed pull-request check.
+
+inputs:
+  suite:
+    description: Repository-relative path to the Agent CI suite.
+    required: true
+  manifest:
+    description: Repository-relative path to the release manifest.
+    required: true
+  adapter-manifest:
+    description: Repository-relative path to the closed external-adapter manifest.
+    required: true
+  allow-adapter-env:
+    description: Reserved for a future credentialed Action; any non-empty value fails v0.3 closed.
+    required: false
+    default: ""
+  approved-adapter-digest:
+    description: Reserved for a future credentialed Action; any non-empty value fails v0.3 closed.
+    required: false
+    default: ""
+  allow-candidate-env:
+    description: Reserved for a future credentialed Action; any non-empty value fails v0.3 closed.
+    required: false
+    default: ""
+  approved-release-digest:
+    description: Reserved for a future credentialed Action; any non-empty value fails v0.3 closed.
+    required: false
+    default: ""
+  report:
+    description: Repository-relative .agentci/ path for the sanitized JSON publication report.
+    required: false
+    default: .agentci/report.json
+  markdown:
+    description: Repository-relative .agentci/ path for the sanitized Markdown publication report.
+    required: false
+    default: .agentci/report.md
+
+runs:
+  using: composite
+  steps:
+    - name: Enforce the credential-free Action boundary
+      shell: sh
+      env:
+        AGENTCI_ALLOW_ADAPTER_ENV: ${{ inputs.allow-adapter-env }}
+        AGENTCI_APPROVED_ADAPTER_DIGEST: ${{ inputs.approved-adapter-digest }}
+        AGENTCI_ALLOW_CANDIDATE_ENV: ${{ inputs.allow-candidate-env }}
+        AGENTCI_APPROVED_RELEASE_DIGEST: ${{ inputs.approved-release-digest }}
+        AGENTCI_SUITE: ${{ inputs.suite }}
+        AGENTCI_MANIFEST: ${{ inputs.manifest }}
+        AGENTCI_ADAPTER_MANIFEST: ${{ inputs.adapter-manifest }}
+        AGENTCI_REPORT: ${{ inputs.report }}
+        AGENTCI_MARKDOWN: ${{ inputs.markdown }}
+      run: |
+        set -eu
+        if ! agentci_preflight_node="$(command -v node 2>/dev/null)"; then
+          exit 2
+        fi
+        if ! /usr/bin/env -i \
+          PATH="${PATH:-}" \
+          GITHUB_WORKSPACE="$GITHUB_WORKSPACE" \
+          AGENTCI_SUITE="$AGENTCI_SUITE" \
+          AGENTCI_MANIFEST="$AGENTCI_MANIFEST" \
+          AGENTCI_ADAPTER_MANIFEST="$AGENTCI_ADAPTER_MANIFEST" \
+          AGENTCI_REPORT="$AGENTCI_REPORT" \
+          AGENTCI_MARKDOWN="$AGENTCI_MARKDOWN" \
+          "$agentci_preflight_node" -e '
+            const fs = require("node:fs");
+            const path = require("node:path");
+            const workspace = fs.realpathSync(process.env.GITHUB_WORKSPACE);
+            const resolveInsideWorkspace = (value) => {
+              if (
+                typeof value !== "string" ||
+                value.length === 0 ||
+                path.isAbsolute(value) ||
+                value.includes("\\") ||
+                value.split("/").includes("..") ||
+                [...value].some((character) => {
+                  const code = character.codePointAt(0);
+                  return code === undefined || code < 32 || code === 127;
+                })
+              ) throw new Error("invalid path");
+              let cursor = path.resolve(workspace, value);
+              const suffix = [];
+              while (!fs.existsSync(cursor)) {
+                const parent = path.dirname(cursor);
+                if (parent === cursor) throw new Error("unresolvable path");
+                suffix.unshift(path.basename(cursor));
+                cursor = parent;
+              }
+              const resolved = path.resolve(fs.realpathSync(cursor), ...suffix);
+              if (
+                resolved !== workspace &&
+                !resolved.startsWith(workspace + path.sep)
+              ) throw new Error("outside workspace");
+              return resolved;
+            };
+            const outputRoot = resolveInsideWorkspace(".agentci");
+            const report = resolveInsideWorkspace(process.env.AGENTCI_REPORT);
+            const markdown = resolveInsideWorkspace(process.env.AGENTCI_MARKDOWN);
+            const inputs = [
+              resolveInsideWorkspace(process.env.AGENTCI_SUITE),
+              resolveInsideWorkspace(process.env.AGENTCI_MANIFEST),
+              resolveInsideWorkspace(process.env.AGENTCI_ADAPTER_MANIFEST),
+            ];
+            for (const input of inputs) {
+              if (
+                input === outputRoot ||
+                input.startsWith(outputRoot + path.sep)
+              ) throw new Error("input uses reserved output root");
+            }
+            for (const target of [report, markdown]) {
+              if (
+                target === outputRoot ||
+                !target.startsWith(outputRoot + path.sep)
+              ) throw new Error("outside output root");
+            }
+            if (report === markdown) throw new Error("aliased outputs");
+            for (const target of [report, markdown]) {
+              if (!fs.existsSync(target)) continue;
+              if (fs.lstatSync(target).isDirectory()) {
+                throw new Error("output is a directory");
+              }
+            }
+            for (const target of [report, markdown]) {
+              if (fs.existsSync(target)) fs.unlinkSync(target);
+            }
+          ' 2>/dev/null; then
+          exit 2
+        fi
+        if [ -n "$AGENTCI_ALLOW_ADAPTER_ENV" ] || \
+           [ -n "$AGENTCI_APPROVED_ADAPTER_DIGEST" ] || \
+           [ -n "$AGENTCI_ALLOW_CANDIDATE_ENV" ] || \
+           [ -n "$AGENTCI_APPROVED_RELEASE_DIGEST" ]; then
+          # The composite Action cannot keep a caller step's env out of its own
+          # setup/install subprocesses. Reject silently before those steps; use
+          # the separately staged local CLI path for credentialed evaluation.
+          exit 2
+        fi
+
+    - name: Set up Node.js
+      uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+      with:
+        node-version: 20
+        cache: npm
+        cache-dependency-path: ${{ github.action_path }}/package-lock.json
+
+    - name: Install and build Agent CI
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: |
+        set -euo pipefail
+        npm ci --ignore-scripts --no-audit --no-fund
+        npm run build --silent
+
+    - name: Run Agent CI gate
+      shell: bash
+      env:
+        AGENTCI_SUITE: ${{ inputs.suite }}
+        AGENTCI_MANIFEST: ${{ inputs.manifest }}
+        AGENTCI_ADAPTER_MANIFEST: ${{ inputs.adapter-manifest }}
+        AGENTCI_ALLOW_ADAPTER_ENV: ${{ inputs.allow-adapter-env }}
+        AGENTCI_APPROVED_ADAPTER_DIGEST: ${{ inputs.approved-adapter-digest }}
+        AGENTCI_ALLOW_CANDIDATE_ENV: ${{ inputs.allow-candidate-env }}
+        AGENTCI_APPROVED_RELEASE_DIGEST: ${{ inputs.approved-release-digest }}
+        AGENTCI_REPORT: ${{ inputs.report }}
+        AGENTCI_MARKDOWN: ${{ inputs.markdown }}
+      run: |
+        set -euo pipefail
+
+        emit_agentci_diagnostic() {
+          local severity="$1"
+          local message="$2"
+          printf '%s\n' "::${severity}::${message}" >&2
+        }
+
+        # This repeats the pre-setup check so the tested gate block also fails
+        # closed if it is ever reused independently of the composite step list.
+        if [[ -n "$AGENTCI_ALLOW_ADAPTER_ENV" || \
+              -n "$AGENTCI_APPROVED_ADAPTER_DIGEST" || \
+              -n "$AGENTCI_ALLOW_CANDIDATE_ENV" || \
+              -n "$AGENTCI_APPROVED_RELEASE_DIGEST" ]]; then
+          exit 2
+        fi
+
+        resolve_repo_relative_path() {
+          local label="$1"
+          local value="$2"
+
+          if [[ -z "$value" || "$value" == /* || "$value" == *\\* || "/$value/" == *"/../"* ]]; then
+            emit_agentci_diagnostic error "${label} must be a non-empty repository-relative POSIX path without '..' components."
+            return 2
+          fi
+          if ! node -e '
+            const value = process.argv[1];
+            if ([...value].some((character) => {
+              const code = character.codePointAt(0);
+              return code === undefined || code < 32 || code === 127;
+            })) process.exit(1);
+          ' "$value" 2>/dev/null; then
+            emit_agentci_diagnostic error "${label} must not contain control characters."
+            return 2
+          fi
+
+          if ! node -e '
+            const fs = require("node:fs");
+            const path = require("node:path");
+            const workspace = fs.realpathSync(process.argv[1]);
+            let cursor = path.resolve(workspace, process.argv[2]);
+            const suffix = [];
+            while (!fs.existsSync(cursor)) {
+              const parent = path.dirname(cursor);
+              if (parent === cursor) process.exit(2);
+              suffix.unshift(path.basename(cursor));
+              cursor = parent;
+            }
+            const resolved = path.resolve(fs.realpathSync(cursor), ...suffix);
+            if (
+              resolved !== workspace &&
+              !resolved.startsWith(workspace + path.sep)
+            ) process.exit(1);
+            process.stdout.write(resolved);
+          ' "$GITHUB_WORKSPACE" "$value" 2>/dev/null; then
+            emit_agentci_diagnostic error "${label} resolves outside GITHUB_WORKSPACE."
+            return 2
+          fi
+        }
+
+        agentci_suite_target="$(resolve_repo_relative_path "suite" "$AGENTCI_SUITE")"
+        agentci_manifest_target="$(resolve_repo_relative_path "manifest" "$AGENTCI_MANIFEST")"
+        agentci_adapter_manifest_target="$(resolve_repo_relative_path "adapter-manifest" "$AGENTCI_ADAPTER_MANIFEST")"
+        agentci_report_target="$(resolve_repo_relative_path "report" "$AGENTCI_REPORT")"
+        agentci_markdown_target="$(resolve_repo_relative_path "markdown" "$AGENTCI_MARKDOWN")"
+        agentci_workspace_target="$(resolve_repo_relative_path "workspace" ".")"
+        agentci_output_root="$(resolve_repo_relative_path "evidence output root" ".agentci")"
+        if [[ "$agentci_report_target" == "$agentci_workspace_target" || "$agentci_markdown_target" == "$agentci_workspace_target" ]]; then
+          emit_agentci_diagnostic error "evidence output paths must identify files."
+          exit 2
+        fi
+        for agentci_output_target in "$agentci_report_target" "$agentci_markdown_target"; do
+          if [[ "$agentci_output_target" == "$agentci_output_root" || "$agentci_output_target" != "$agentci_output_root/"* ]]; then
+            emit_agentci_diagnostic error "evidence output paths must remain beneath the repository .agentci directory."
+            exit 2
+          fi
+        done
+        if [[ "$agentci_report_target" == "$agentci_markdown_target" ]]; then
+          emit_agentci_diagnostic error "report and markdown must resolve to different paths."
+          exit 2
+        fi
+        for agentci_input_target in \
+          "$agentci_suite_target" \
+          "$agentci_manifest_target" \
+          "$agentci_adapter_manifest_target"; do
+          if [[ "$agentci_report_target" == "$agentci_input_target" || "$agentci_markdown_target" == "$agentci_input_target" ]]; then
+            emit_agentci_diagnostic error "evidence output paths must not overwrite suite or manifest inputs."
+            exit 2
+          fi
+        done
+        if ! cd "$GITHUB_WORKSPACE" 2>/dev/null; then
+          emit_agentci_diagnostic error "Agent CI could not enter GITHUB_WORKSPACE."
+          exit 2
+        fi
+        if ! mkdir -p -- "$(dirname -- "$agentci_report_target")" "$(dirname -- "$agentci_markdown_target")" 2>/dev/null; then
+          emit_agentci_diagnostic error "Agent CI could not create the configured evidence directories."
+          exit 2
+        fi
+        if ! rm -f -- "$agentci_report_target" "$agentci_markdown_target" 2>/dev/null; then
+          emit_agentci_diagnostic error "Agent CI could not clear the configured evidence outputs."
+          exit 2
+        fi
+        if ! agentci_temp_dir="$(mktemp -d "${RUNNER_TEMP:?}/agentci.XXXXXX" 2>/dev/null)"; then
+          emit_agentci_diagnostic error "Agent CI could not create its temporary evidence directory."
+          exit 2
+        fi
+        cleanup_agentci_temp_dir() {
+          local status=$?
+          trap - EXIT
+          rm -rf -- "$agentci_temp_dir" 2>/dev/null || true
+          exit "$status"
+        }
+        trap cleanup_agentci_temp_dir EXIT
+        agentci_json="$agentci_temp_dir/report.json"
+        agentci_markdown="$agentci_temp_dir/report.md"
+
+        command=(
+          node "$GITHUB_ACTION_PATH/dist/src/cli.js"
+          check
+          --suite "$AGENTCI_SUITE"
+          --manifest "$AGENTCI_MANIFEST"
+          --adapter-manifest "$AGENTCI_ADAPTER_MANIFEST"
+          --publication-report "$agentci_json"
+          --publication-markdown "$agentci_markdown"
+          --require-explicit-candidate-policy
+          --github
+        )
+        set +e
+        "${command[@]}"
+        agentci_status=$?
+        set -e
+
+        agentci_publication_failed=0
+        if [[ -f "$agentci_json" ]]; then
+          if ! cp -- "$agentci_json" "$agentci_report_target" 2>/dev/null; then
+            emit_agentci_diagnostic error "Agent CI could not publish the JSON evidence report."
+            agentci_publication_failed=1
+          fi
+        elif [[ "$agentci_status" -eq 0 ]]; then
+          emit_agentci_diagnostic error "Agent CI passed without producing its JSON evidence report."
+          agentci_publication_failed=1
+        fi
+        if [[ -f "$agentci_markdown" ]]; then
+          if ! cp -- "$agentci_markdown" "$agentci_markdown_target" 2>/dev/null; then
+            emit_agentci_diagnostic error "Agent CI could not publish the Markdown evidence report."
+            agentci_publication_failed=1
+          fi
+        elif [[ "$agentci_status" -eq 0 ]]; then
+          emit_agentci_diagnostic error "Agent CI passed without producing its Markdown evidence report."
+          agentci_publication_failed=1
+        fi
+
+        if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
+          if [[ -f "$agentci_markdown" ]]; then
+            if ! cat -- "$agentci_markdown" >> "$GITHUB_STEP_SUMMARY" 2>/dev/null; then
+              emit_agentci_diagnostic warning "Agent CI could not append Markdown evidence to the job summary."
+              agentci_publication_failed=1
+            fi
+          else
+            emit_agentci_diagnostic warning "Agent CI did not produce the configured sanitized Markdown report."
+            agentci_publication_failed=1
+          fi
+        fi
+
+        if [[ "$agentci_publication_failed" -ne 0 && "$agentci_status" -eq 0 ]]; then
+          agentci_status=2
+        fi
+        exit "$agentci_status"

@@ -1,0 +1,575 @@
+import { cloneJson, isJsonValue } from "../canonical.js";
+import { FixtureError, ToolCallError } from "../errors.js";
+import type {
+  AdapterDefinition,
+  Environment,
+  JsonValue,
+  SuiteSpec,
+} from "../types.js";
+
+interface Order {
+  id: string;
+  amount: number;
+  currency: string;
+  status: string;
+  refundable: boolean;
+}
+
+interface Ticket {
+  id: string;
+  orderId: string;
+  status: string;
+}
+
+interface Refund {
+  id: string;
+  orderId: string;
+  amount: number;
+  currency: string;
+  idempotencyKey: string;
+}
+
+interface Notification {
+  ticketId: string;
+  template: string;
+}
+
+interface Escalation {
+  ticketId: string;
+  reason: string;
+}
+
+interface RefundState {
+  orders: Record<string, Order>;
+  tickets: Record<string, Ticket>;
+  refunds: Refund[];
+  notifications: Notification[];
+  escalations: Escalation[];
+}
+
+export const REFUND_TOOL_NAMES = [
+  "orders.get",
+  "refunds.list",
+  "refunds.create",
+  "tickets.get",
+  "tickets.update",
+  "notifications.send",
+  "cases.escalate",
+] as const;
+
+function isJsonRecord(value: JsonValue | undefined): value is Record<string, JsonValue> {
+  return value !== undefined && value !== null && !Array.isArray(value) && typeof value === "object";
+}
+
+function checkString(
+  record: Record<string, JsonValue>,
+  key: string,
+  path: string,
+  issues: string[],
+): void {
+  if (typeof record[key] !== "string" || (record[key] as string).length === 0) {
+    issues.push(`${path}.${key} must be a non-empty string`);
+  }
+}
+
+function checkPositiveNumber(
+  record: Record<string, JsonValue>,
+  key: string,
+  path: string,
+  issues: string[],
+): void {
+  const value = record[key];
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+    issues.push(`${path}.${key} must be a positive number`);
+  }
+}
+
+export function validateRefundState(value: JsonValue): string[] {
+  const issues: string[] = [];
+  if (!isJsonRecord(value)) {
+    return ["initialState must be an object"];
+  }
+  const orders = value.orders;
+  const tickets = value.tickets;
+  const refunds = value.refunds;
+  const notifications = value.notifications;
+  const escalations = value.escalations;
+  if (!isJsonRecord(orders)) {
+    issues.push("initialState.orders must be an object");
+  } else {
+    for (const [key, rawOrder] of Object.entries(orders)) {
+      const path = `initialState.orders.${key}`;
+      if (!isJsonRecord(rawOrder)) {
+        issues.push(`${path} must be an object`);
+        continue;
+      }
+      checkString(rawOrder, "id", path, issues);
+      checkPositiveNumber(rawOrder, "amount", path, issues);
+      checkString(rawOrder, "currency", path, issues);
+      checkString(rawOrder, "status", path, issues);
+      if (typeof rawOrder.refundable !== "boolean") {
+        issues.push(`${path}.refundable must be a boolean`);
+      }
+      if (rawOrder.id !== key) {
+        issues.push(`${path}.id must equal its map key`);
+      }
+    }
+  }
+  if (!isJsonRecord(tickets)) {
+    issues.push("initialState.tickets must be an object");
+  } else {
+    for (const [key, rawTicket] of Object.entries(tickets)) {
+      const path = `initialState.tickets.${key}`;
+      if (!isJsonRecord(rawTicket)) {
+        issues.push(`${path} must be an object`);
+        continue;
+      }
+      checkString(rawTicket, "id", path, issues);
+      checkString(rawTicket, "orderId", path, issues);
+      checkString(rawTicket, "status", path, issues);
+      if (rawTicket.id !== key) {
+        issues.push(`${path}.id must equal its map key`);
+      }
+      if (
+        typeof rawTicket.orderId === "string" &&
+        isJsonRecord(orders) &&
+        orders[rawTicket.orderId] === undefined
+      ) {
+        issues.push(`${path}.orderId must reference an existing order`);
+      }
+    }
+  }
+  if (!Array.isArray(refunds)) {
+    issues.push("initialState.refunds must be an array");
+  } else {
+    const keys = new Set<string>();
+    refunds.forEach((rawRefund, index) => {
+      const path = `initialState.refunds[${index}]`;
+      if (!isJsonRecord(rawRefund)) {
+        issues.push(`${path} must be an object`);
+        return;
+      }
+      checkString(rawRefund, "id", path, issues);
+      checkString(rawRefund, "orderId", path, issues);
+      checkPositiveNumber(rawRefund, "amount", path, issues);
+      checkString(rawRefund, "currency", path, issues);
+      checkString(rawRefund, "idempotencyKey", path, issues);
+      if (typeof rawRefund.idempotencyKey === "string") {
+        if (keys.has(rawRefund.idempotencyKey)) {
+          issues.push(`${path}.idempotencyKey must be unique`);
+        }
+        keys.add(rawRefund.idempotencyKey);
+      }
+      if (
+        typeof rawRefund.orderId === "string" &&
+        isJsonRecord(orders) &&
+        orders[rawRefund.orderId] === undefined
+      ) {
+        issues.push(`${path}.orderId must reference an existing order`);
+      }
+    });
+  }
+  if (!Array.isArray(notifications)) {
+    issues.push("initialState.notifications must be an array");
+  } else {
+    notifications.forEach((rawNotification, index) => {
+      const path = `initialState.notifications[${index}]`;
+      if (!isJsonRecord(rawNotification)) {
+        issues.push(`${path} must be an object`);
+        return;
+      }
+      checkString(rawNotification, "ticketId", path, issues);
+      checkString(rawNotification, "template", path, issues);
+    });
+  }
+  if (!Array.isArray(escalations)) {
+    issues.push("initialState.escalations must be an array");
+  } else {
+    escalations.forEach((rawEscalation, index) => {
+      const path = `initialState.escalations[${index}]`;
+      if (!isJsonRecord(rawEscalation)) {
+        issues.push(`${path} must be an object`);
+        return;
+      }
+      checkString(rawEscalation, "ticketId", path, issues);
+      checkString(rawEscalation, "reason", path, issues);
+    });
+  }
+  return issues;
+}
+
+function pointerSegments(pointer: string): string[] | undefined {
+  if (!pointer.startsWith("/") || /~(?:[^01]|$)/.test(pointer)) {
+    return undefined;
+  }
+  return pointer
+    .slice(1)
+    .split("/")
+    .map((segment) => segment.replaceAll("~1", "/").replaceAll("~0", "~"));
+}
+
+const REFUND_STATE_PATHS = {
+  orders: {
+    kind: "map",
+    fields: new Set(["id", "amount", "currency", "status", "refundable"]),
+  },
+  tickets: {
+    kind: "map",
+    fields: new Set(["id", "orderId", "status"]),
+  },
+  refunds: {
+    kind: "array",
+    fields: new Set(["id", "orderId", "amount", "currency", "idempotencyKey"]),
+  },
+  notifications: {
+    kind: "array",
+    fields: new Set(["ticketId", "template"]),
+  },
+  escalations: {
+    kind: "array",
+    fields: new Set(["ticketId", "reason"]),
+  },
+} as const;
+
+function validateRefundStatePointer(
+  pointer: string,
+  initialState: JsonValue,
+): string | undefined {
+  const segments = pointerSegments(pointer);
+  const root = segments?.[0];
+  if (segments === undefined || root === undefined || root.length === 0) {
+    return "must begin with a declared state root";
+  }
+  const shape = REFUND_STATE_PATHS[root as keyof typeof REFUND_STATE_PATHS];
+  if (shape === undefined) {
+    return "must begin with a declared state root";
+  }
+  if (segments.length === 1) {
+    return undefined;
+  }
+  if (segments.length > 3) {
+    return "is deeper than the refunds.v1 state contract";
+  }
+
+  const member = segments[1];
+  if (member === undefined || member.length === 0) {
+    return "must name a state member after its root";
+  }
+  if (shape.kind === "array" && !/^\d+$/.test(member)) {
+    return `must use a numeric index below /${root}`;
+  }
+  if (shape.kind === "map") {
+    if (!isJsonRecord(initialState)) {
+      return "cannot be checked against malformed initial state";
+    }
+    const collection = initialState[root];
+    if (!isJsonRecord(collection) || collection[member] === undefined) {
+      return `names undeclared ${root} member ${member}`;
+    }
+  }
+
+  const field = segments[2];
+  if (field !== undefined && !shape.fields.has(field as never)) {
+    return `uses unknown ${root} field ${field}`;
+  }
+  return undefined;
+}
+
+export function validateSuiteForFixture(suite: SuiteSpec): string[] {
+  if (suite.fixture !== "refunds.v1") {
+    return [`unsupported fixture: ${suite.fixture}`];
+  }
+  const toolNames = new Set<string>(REFUND_TOOL_NAMES);
+  const issues: string[] = [];
+  suite.scenarios.forEach((scenario, scenarioIndex) => {
+    const prefix = `scenarios[${scenarioIndex}]`;
+    issues.push(
+      ...validateRefundState(scenario.initialState).map(
+        (issue) => `${prefix}.${issue}`,
+      ),
+    );
+    const faultKeys = new Set<string>();
+    scenario.faults.forEach((fault, faultIndex) => {
+      if (!toolNames.has(fault.tool)) {
+        issues.push(`${prefix}.faults[${faultIndex}].tool is not available in refunds.v1`);
+      }
+      const key = `${fault.tool}:${fault.onCall}`;
+      if (faultKeys.has(key)) {
+        issues.push(`${prefix}.faults contains a duplicate schedule for ${key}`);
+      }
+      faultKeys.add(key);
+    });
+    scenario.assertions.forEach((assertion, assertionIndex) => {
+      const assertionPath = `${prefix}.assertions[${assertionIndex}]`;
+      if (assertion.type === "event_count" && !toolNames.has(assertion.tool)) {
+        issues.push(`${assertionPath}.tool is not available in refunds.v1`);
+      }
+      if (assertion.type === "event_order") {
+        assertion.tools.forEach((tool) => {
+          if (!toolNames.has(tool)) {
+            issues.push(`${assertionPath}.tools contains unavailable tool ${tool}`);
+          }
+        });
+      }
+      if (assertion.type === "json_pointer") {
+        if (assertion.source === "output" && assertion.operator === "absent") {
+          issues.push(`${assertionPath} cannot use an absent assertion on untyped candidate output`);
+        }
+        if (assertion.source === "state") {
+          const pointerIssue = validateRefundStatePointer(
+            assertion.pointer,
+            scenario.initialState,
+          );
+          if (pointerIssue !== undefined) {
+            issues.push(`${assertionPath}.pointer ${pointerIssue}`);
+          }
+        }
+      }
+    });
+  });
+  return issues;
+}
+
+function asRecord(value: JsonValue, label: string): Record<string, JsonValue> {
+  if (value === null || Array.isArray(value) || typeof value !== "object") {
+    throw new ToolCallError("invalid_arguments", `${label} must be an object`);
+  }
+  return value;
+}
+
+function requiredString(
+  record: Record<string, JsonValue>,
+  key: string,
+): string {
+  const value = record[key];
+  if (typeof value !== "string" || value.length === 0) {
+    throw new ToolCallError("invalid_arguments", `${key} must be a non-empty string`);
+  }
+  return value;
+}
+
+function requiredNumber(
+  record: Record<string, JsonValue>,
+  key: string,
+): number {
+  const value = record[key];
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+    throw new ToolCallError("invalid_arguments", `${key} must be a positive number`);
+  }
+  return value;
+}
+
+function assertState(value: JsonValue): RefundState {
+  const issues = validateRefundState(value);
+  if (issues.length > 0) {
+    throw new FixtureError(`invalid refund fixture state:\n${issues.map((issue) => `- ${issue}`).join("\n")}`);
+  }
+  return cloneJson(value) as unknown as RefundState;
+}
+
+function toJson(value: unknown): JsonValue {
+  if (!isJsonValue(value)) {
+    throw new FixtureError("fixture attempted to return a non-JSON value");
+  }
+  return value;
+}
+
+export function createRefundEnvironment(initialState: JsonValue): Environment {
+  const state = assertState(initialState);
+
+  return {
+    tools: [...REFUND_TOOL_NAMES],
+
+    async call(tool: string, argumentsValue: JsonValue): Promise<JsonValue> {
+      const args = asRecord(argumentsValue, "arguments");
+
+      switch (tool) {
+        case "orders.get": {
+          const orderId = requiredString(args, "orderId");
+          const order = state.orders[orderId];
+          if (order === undefined) {
+            throw new ToolCallError("not_found", `order ${orderId} was not found`);
+          }
+          return toJson(cloneJson(order as unknown as JsonValue));
+        }
+
+        case "tickets.get": {
+          const ticketId = requiredString(args, "ticketId");
+          const ticket = state.tickets[ticketId];
+          if (ticket === undefined) {
+            throw new ToolCallError("not_found", `ticket ${ticketId} was not found`);
+          }
+          return toJson(cloneJson(ticket as unknown as JsonValue));
+        }
+
+        case "refunds.list": {
+          const orderId = requiredString(args, "orderId");
+          return toJson(
+            cloneJson(
+              state.refunds.filter((refund) => refund.orderId === orderId) as unknown as JsonValue,
+            ),
+          );
+        }
+
+        case "refunds.create": {
+          const orderId = requiredString(args, "orderId");
+          const amount = requiredNumber(args, "amount");
+          const currency = requiredString(args, "currency");
+          const idempotencyKey = requiredString(args, "idempotencyKey");
+          const order = state.orders[orderId];
+          if (order === undefined) {
+            throw new ToolCallError("not_found", `order ${orderId} was not found`);
+          }
+          if (amount > order.amount) {
+            throw new ToolCallError("amount_exceeds_order", "refund exceeds the order amount");
+          }
+          if (currency !== order.currency) {
+            throw new ToolCallError("currency_mismatch", "refund currency differs from order");
+          }
+          const existing = state.refunds.find(
+            (refund) => refund.idempotencyKey === idempotencyKey,
+          );
+          if (existing !== undefined) {
+            return toJson(cloneJson(existing as unknown as JsonValue));
+          }
+          const refund: Refund = {
+            id: `refund-${state.refunds.length + 1}`,
+            orderId,
+            amount,
+            currency,
+            idempotencyKey,
+          };
+          state.refunds.push(refund);
+          order.status = "refunded";
+          return toJson(cloneJson(refund as unknown as JsonValue));
+        }
+
+        case "tickets.update": {
+          const ticketId = requiredString(args, "ticketId");
+          const status = requiredString(args, "status");
+          if (!["open", "resolved", "escalated"].includes(status)) {
+            throw new ToolCallError("invalid_status", `unsupported ticket status ${status}`);
+          }
+          const ticket = state.tickets[ticketId];
+          if (ticket === undefined) {
+            throw new ToolCallError("not_found", `ticket ${ticketId} was not found`);
+          }
+          ticket.status = status;
+          return toJson(cloneJson(ticket as unknown as JsonValue));
+        }
+
+        case "notifications.send": {
+          const ticketId = requiredString(args, "ticketId");
+          const template = requiredString(args, "template");
+          if (state.tickets[ticketId] === undefined) {
+            throw new ToolCallError("not_found", `ticket ${ticketId} was not found`);
+          }
+          const notification: Notification = { ticketId, template };
+          state.notifications.push(notification);
+          return toJson({ accepted: true });
+        }
+
+        case "cases.escalate": {
+          const ticketId = requiredString(args, "ticketId");
+          const reason = requiredString(args, "reason");
+          const ticket = state.tickets[ticketId];
+          if (ticket === undefined) {
+            throw new ToolCallError("not_found", `ticket ${ticketId} was not found`);
+          }
+          ticket.status = "escalated";
+          const escalation: Escalation = { ticketId, reason };
+          state.escalations.push(escalation);
+          return toJson({ accepted: true });
+        }
+
+        default:
+          throw new ToolCallError("unknown_tool", `unknown tool: ${tool}`);
+      }
+    },
+
+    snapshot(): JsonValue {
+      return cloneJson(state as unknown as JsonValue);
+    },
+  };
+}
+
+export function createEnvironment(
+  fixture: string,
+  initialState: JsonValue,
+): Environment {
+  if (fixture === "refunds.v1") {
+    return createRefundEnvironment(initialState);
+  }
+  throw new FixtureError(`unsupported fixture: ${fixture}`);
+}
+
+const conformanceInitialState: JsonValue = {
+  orders: {
+    "order-conformance": {
+      id: "order-conformance",
+      amount: 25,
+      currency: "USD",
+      status: "paid",
+      refundable: true,
+    },
+  },
+  tickets: {},
+  refunds: [],
+  notifications: [],
+  escalations: [],
+};
+
+export const refundsAdapter: AdapterDefinition = {
+  apiVersion: "agentci.adapter.v1",
+  id: "refunds.v1",
+  version: "1.0.0",
+  tools: REFUND_TOOL_NAMES,
+  conformance: [
+    {
+      name: "creates one deterministic refund in isolated state",
+      initialState: conformanceInitialState,
+      call: {
+        tool: "refunds.create",
+        arguments: {
+          orderId: "order-conformance",
+          amount: 25,
+          currency: "USD",
+          idempotencyKey: "conformance-refund",
+        },
+      },
+      expectedResult: {
+        id: "refund-1",
+        orderId: "order-conformance",
+        amount: 25,
+        currency: "USD",
+        idempotencyKey: "conformance-refund",
+      },
+      expectedFinalState: {
+        orders: {
+          "order-conformance": {
+            id: "order-conformance",
+            amount: 25,
+            currency: "USD",
+            status: "refunded",
+            refundable: true,
+          },
+        },
+        tickets: {},
+        refunds: [
+          {
+            id: "refund-1",
+            orderId: "order-conformance",
+            amount: 25,
+            currency: "USD",
+            idempotencyKey: "conformance-refund",
+          },
+        ],
+        notifications: [],
+        escalations: [],
+      },
+    },
+  ],
+  validateSuite: validateSuiteForFixture,
+  validateStatePointer: validateRefundStatePointer,
+  createEnvironment: createRefundEnvironment,
+};

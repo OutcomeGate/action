@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.agentci/
+.env
+.env.*
+!.env.example
+runs/
+traces/
+coverage/
+*.log
+.DS_Store
+.claude/settings.local.json
+
+# Customer fixtures and raw traces must never be committed.
+customer-data/
+customer-fixtures/

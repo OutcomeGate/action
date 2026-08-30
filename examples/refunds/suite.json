@@ -1,0 +1,288 @@
+{
+  "schemaVersion": "agentci.suite.v1",
+  "name": "support-refund-release",
+  "version": "1.0.0",
+  "fixture": "refunds.v1",
+  "gate": {
+    "minPassRate": 1
+  },
+  "scenarios": [
+    {
+      "id": "eligible-refund",
+      "description": "An eligible order is refunded exactly once and the ticket is resolved.",
+      "task": {
+        "ticketId": "ticket-eligible"
+      },
+      "initialState": {
+        "orders": {
+          "order-eligible": {
+            "id": "order-eligible",
+            "amount": 125,
+            "currency": "USD",
+            "status": "paid",
+            "refundable": true
+          }
+        },
+        "tickets": {
+          "ticket-eligible": {
+            "id": "ticket-eligible",
+            "orderId": "order-eligible",
+            "status": "open"
+          }
+        },
+        "refunds": [],
+        "notifications": [],
+        "escalations": []
+      },
+      "faults": [],
+      "timeoutMs": 2000,
+      "maxToolCalls": 10,
+      "assertions": [
+        {
+          "id": "correct-order-refunded",
+          "type": "json_pointer",
+          "source": "state",
+          "pointer": "/refunds/0/orderId",
+          "operator": "equals",
+          "expected": "order-eligible"
+        },
+        {
+          "id": "correct-amount-refunded",
+          "type": "json_pointer",
+          "source": "state",
+          "pointer": "/refunds/0/amount",
+          "operator": "equals",
+          "expected": 125
+        },
+        {
+          "id": "no-duplicate-refund",
+          "type": "json_pointer",
+          "source": "state",
+          "pointer": "/refunds/1",
+          "operator": "absent"
+        },
+        {
+          "id": "ticket-resolved",
+          "type": "json_pointer",
+          "source": "state",
+          "pointer": "/tickets/ticket-eligible/status",
+          "operator": "equals",
+          "expected": "resolved"
+        },
+        {
+          "id": "customer-notified",
+          "type": "json_pointer",
+          "source": "state",
+          "pointer": "/notifications/0/template",
+          "operator": "equals",
+          "expected": "refund-confirmed"
+        },
+        {
+          "id": "candidate-reported-refund",
+          "type": "json_pointer",
+          "source": "output",
+          "pointer": "/action",
+          "operator": "equals",
+          "expected": "refunded"
+        },
+        {
+          "id": "one-refund-call",
+          "type": "event_count",
+          "tool": "refunds.create",
+          "outcome": "any",
+          "expected": 1
+        },
+        {
+          "id": "mutation-before-resolution",
+          "type": "event_order",
+          "tools": ["refunds.create", "tickets.update", "notifications.send"]
+        }
+      ]
+    },
+    {
+      "id": "ineligible-refund",
+      "description": "An ineligible order creates no refund and is escalated.",
+      "task": {
+        "ticketId": "ticket-ineligible"
+      },
+      "initialState": {
+        "orders": {
+          "order-ineligible": {
+            "id": "order-ineligible",
+            "amount": 75,
+            "currency": "USD",
+            "status": "paid",
+            "refundable": false
+          }
+        },
+        "tickets": {
+          "ticket-ineligible": {
+            "id": "ticket-ineligible",
+            "orderId": "order-ineligible",
+            "status": "open"
+          }
+        },
+        "refunds": [],
+        "notifications": [],
+        "escalations": []
+      },
+      "faults": [],
+      "timeoutMs": 2000,
+      "maxToolCalls": 10,
+      "assertions": [
+        {
+          "id": "no-financial-mutation",
+          "type": "json_pointer",
+          "source": "state",
+          "pointer": "/refunds/0",
+          "operator": "absent"
+        },
+        {
+          "id": "case-escalated",
+          "type": "json_pointer",
+          "source": "state",
+          "pointer": "/escalations/0/ticketId",
+          "operator": "equals",
+          "expected": "ticket-ineligible"
+        },
+        {
+          "id": "ticket-marked-escalated",
+          "type": "json_pointer",
+          "source": "state",
+          "pointer": "/tickets/ticket-ineligible/status",
+          "operator": "equals",
+          "expected": "escalated"
+        },
+        {
+          "id": "customer-notified-of-escalation",
+          "type": "json_pointer",
+          "source": "state",
+          "pointer": "/notifications/0/template",
+          "operator": "equals",
+          "expected": "refund-escalated"
+        },
+        {
+          "id": "candidate-reported-escalation",
+          "type": "json_pointer",
+          "source": "output",
+          "pointer": "/action",
+          "operator": "equals",
+          "expected": "escalated"
+        },
+        {
+          "id": "zero-refund-calls",
+          "type": "event_count",
+          "tool": "refunds.create",
+          "outcome": "any",
+          "expected": 0
+        },
+        {
+          "id": "escalation-before-notification",
+          "type": "event_order",
+          "tools": ["cases.escalate", "notifications.send"]
+        }
+      ]
+    },
+    {
+      "id": "timeout-after-commit",
+      "description": "An ambiguous timeout after commit must not create a duplicate refund.",
+      "task": {
+        "ticketId": "ticket-timeout"
+      },
+      "initialState": {
+        "orders": {
+          "order-timeout": {
+            "id": "order-timeout",
+            "amount": 200,
+            "currency": "USD",
+            "status": "paid",
+            "refundable": true
+          }
+        },
+        "tickets": {
+          "ticket-timeout": {
+            "id": "ticket-timeout",
+            "orderId": "order-timeout",
+            "status": "open"
+          }
+        },
+        "refunds": [],
+        "notifications": [],
+        "escalations": []
+      },
+      "faults": [
+        {
+          "tool": "refunds.create",
+          "onCall": 1,
+          "phase": "after",
+          "error": {
+            "code": "response_timeout",
+            "message": "the refund committed but the response timed out"
+          }
+        }
+      ],
+      "timeoutMs": 2000,
+      "maxToolCalls": 12,
+      "assertions": [
+        {
+          "id": "correct-order-refunded",
+          "type": "json_pointer",
+          "source": "state",
+          "pointer": "/refunds/0/orderId",
+          "operator": "equals",
+          "expected": "order-timeout"
+        },
+        {
+          "id": "one-refund-after-ambiguous-timeout",
+          "type": "json_pointer",
+          "source": "state",
+          "pointer": "/refunds/1",
+          "operator": "absent"
+        },
+        {
+          "id": "stable-idempotency-key",
+          "type": "json_pointer",
+          "source": "state",
+          "pointer": "/refunds/0/idempotencyKey",
+          "operator": "equals",
+          "expected": "ticket-timeout:order-timeout:refund"
+        },
+        {
+          "id": "ticket-resolved-after-reconciliation",
+          "type": "json_pointer",
+          "source": "state",
+          "pointer": "/tickets/ticket-timeout/status",
+          "operator": "equals",
+          "expected": "resolved"
+        },
+        {
+          "id": "candidate-reported-refund",
+          "type": "json_pointer",
+          "source": "output",
+          "pointer": "/action",
+          "operator": "equals",
+          "expected": "refunded"
+        },
+        {
+          "id": "retry-was-exercised",
+          "type": "event_count",
+          "tool": "refunds.create",
+          "outcome": "any",
+          "expected": 2
+        },
+        {
+          "id": "fault-was-observed",
+          "type": "event_count",
+          "tool": "refunds.create",
+          "outcome": "error",
+          "expected": 1
+        },
+        {
+          "id": "resolution-after-refund-attempts",
+          "type": "event_order",
+          "tools": ["refunds.create", "refunds.create", "tickets.update"]
+        }
+      ]
+    }
+  ]
+}
