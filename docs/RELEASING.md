@@ -37,9 +37,10 @@ GitHub prerelease tag. npm publication is a separate future decision.
 9. Run that exact commit from a separate repository using
    `OWNER/REPOSITORY@<full-40-character-SHA>` on the supported Ubuntu runner.
 10. Review the job summary, annotations, logs, retention, and artifact list.
-11. Record the accepted runtime SHA. In a later reference-only commit,
+11. Record the accepted runtime SHA. In a later pinning follow-up commit,
     replace starter placeholders with that accepted SHA if the project chooses
-    to ship a ready-to-run default.
+    to ship a ready-to-run default. Update and test any generator output that
+    emits the reference as part of the same follow-up.
 12. Re-run the release, history, and package audits. Change repository
     visibility only after explicit approval.
 13. Before advertising the repository, configure a branch ruleset that requires
@@ -50,9 +51,9 @@ GitHub prerelease tag. npm publication is a separate future decision.
     private-repository plan, enable it immediately after changing visibility
     and before accepting contributions.
 
-The two-commit documentation step avoids pretending a commit can contain its own
-SHA. Users should execute the accepted runtime commit, not a mutable branch or
-tag.
+The two-commit pinning sequence avoids pretending a commit can contain its own
+SHA. Users should execute the accepted runtime commit, not the later source
+head, a mutable branch, or a mutable tag.
 
 ## npm publication, if selected
 
