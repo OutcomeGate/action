@@ -89,8 +89,11 @@ test("init creates the default credential-free starter from a fixed template", a
   const actionRefs = [...workflow.matchAll(/uses: [^\s@]+@([0-9a-f]{40})/g)];
   assert.equal(actionRefs.length, 2, "every generated action ref must be a full SHA");
   assert.match(workflow, /Reviewed full-SHA pin/);
-  assert.match(workflow, /REQUIRED: replace the all-zero placeholder/);
-  assert.match(workflow, /agent-ci-action@0{40}/);
+  assert.match(workflow, /Accepted Apache-2\.0 Developer Preview runtime/);
+  assert.match(
+    workflow,
+    /agent-ci-action@65c05affea57490e83959d6eeb4cbee5f6763935/,
+  );
 });
 
 test("init refuses existing, escaping, absolute, and symlink-escaping targets", async (context) => {
@@ -155,7 +158,7 @@ test("the CLI-generated project validates and passes end to end", async (context
   assert.match(initialized.stdout, /Next:/);
   assert.match(initialized.stdout, /cd 'generated'/);
   assert.match(initialized.stdout, /Follow README\.md/);
-  assert.match(initialized.stdout, /intentionally non-runnable/);
+  assert.match(initialized.stdout, /pins the accepted Developer Preview runtime/);
 
   const spaced = await runCli(root, ["init", "generated starter"]);
   assert.equal(spaced.code, 0, `${spaced.stdout}\n${spaced.stderr}`);

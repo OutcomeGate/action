@@ -17,10 +17,9 @@ jobs:
         with:
           persist-credentials: false
 
-      # REQUIRED: replace the all-zero placeholder with a reviewed full
-      # 40-character commit SHA from the public Agent CI Action repository.
-      # Do not replace it with a mutable branch or tag.
-      - uses: ConnorBarnhill/agent-ci-action@0000000000000000000000000000000000000000
+      # Accepted Apache-2.0 Developer Preview runtime. Review this immutable
+      # revision before use; update only to another accepted full SHA.
+      - uses: ConnorBarnhill/agent-ci-action@65c05affea57490e83959d6eeb4cbee5f6763935
         with:
           suite: agentci/suite.json
           manifest: agentci/release.manifest.json

@@ -11,6 +11,7 @@ while its final publication controls are being validated.
 - Add a committed prebuilt runtime for network-minimal Action execution.
 - Add public-history, documentation-link, package-boundary, and release checks.
 - Add contribution, support, issue, and vulnerability-reporting guidance.
+- Pin the starter and examples to the independently accepted preview runtime.
 - Require release-v2 manifests with explicit candidate credential policy.
 - Require manifest-backed adapter-v2 execution for the source Action.
 - Add sanitized publication-v1 output and fail-closed `0`/`1`/`2` behavior.

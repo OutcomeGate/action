@@ -206,7 +206,7 @@ async function main() {
             `  cd ${shellQuote(displayTarget)}`,
             "  Follow README.md using this CLI path or an installed agentci command.",
             "",
-            "The generated GitHub workflow is intentionally non-runnable until its all-zero Agent CI ref is replaced with a reviewed full commit SHA.",
+            "The generated GitHub workflow pins the accepted Developer Preview runtime; review that full commit SHA before enabling it.",
             "",
         ].join("\n"), "CLI init output");
         return 0;

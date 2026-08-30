@@ -37,6 +37,6 @@ installed or linked on your path, use it directly instead of
 
 ## Enable GitHub Actions
 
-The workflow is deliberately non-runnable at first. Replace the all-zero
-Agent CI Action ref with a reviewed 40-character commit SHA. Keep both actions
-pinned to reviewed full SHAs; do not substitute a mutable branch or tag.
+The workflow pins the accepted Apache-2.0 Developer Preview runtime. Review that
+immutable revision before enabling the workflow. Keep both actions pinned to
+reviewed full SHAs; do not substitute a mutable branch or tag.

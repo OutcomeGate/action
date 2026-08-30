@@ -121,19 +121,19 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: OWNER/agent-ci-action@FULL_40_CHARACTER_SHA
+      - uses: ConnorBarnhill/agent-ci-action@65c05affea57490e83959d6eeb4cbee5f6763935
         with:
           suite: examples/counter/suite.json
           manifest: examples/counter/releases/agent.release.json
           adapter-manifest: examples/counter/adapter.manifest.json
 ```
 
-Replace `OWNER` and `FULL_40_CHARACTER_SHA` with the repository owner and a
-reviewed full commit SHA. The Action validates its credential-free profile,
-sets up Node.js 20, and runs the committed prebuilt runtime. It does not run
-`npm install` or build the project in the caller. It writes
-`.agentci/report.json` and `.agentci/report.md`, appends the sanitized Markdown
-to the job summary, and does not upload an artifact.
+This Developer Preview pin is the accepted runtime commit. Review it before use
+and replace it only with a later accepted full commit SHA. The Action validates
+its credential-free profile, sets up Node.js 20, and runs the committed prebuilt
+runtime. It does not run `npm install` or build the project in the caller. It
+writes `.agentci/report.json` and `.agentci/report.md`, appends the sanitized
+Markdown to the job summary, and does not upload an artifact.
 
 The Action accepts custom `report` and `markdown` paths only when they are
 distinct repository-relative files beneath `.agentci/`. Suite and manifest
@@ -167,8 +167,8 @@ node "$AGENTCI_CLI" check \
 
 The final command should report `PASS`. `init` refuses to overwrite an existing
 path. The starter includes a credential-free candidate, adapter, suite, release
-manifest, and workflow. Its workflow deliberately contains an all-zero Agent CI
-ref; replace it with a reviewed full 40-character commit SHA before enabling it.
+manifest, and workflow. Its workflow pins the accepted Developer Preview
+runtime SHA; review it before enabling the workflow.
 
 After npm publication, or when the package is linked locally, the equivalent
 commands can use `agentci` directly instead of `node "$AGENTCI_CLI"`.

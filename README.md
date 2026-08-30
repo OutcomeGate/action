@@ -39,9 +39,9 @@ node "$AGENTCI_SOURCE/dist/src/cli.js" check \
 
 `init` creates a new directory and refuses to overwrite an existing path. The
 generated project contains a passing candidate, adapter, suite, release
-manifest, conformance input, and GitHub workflow. Its workflow deliberately
-uses an all-zero Action ref; replace that value with a reviewed full
-40-character commit SHA before enabling it.
+manifest, conformance input, and GitHub workflow. Its workflow pins the accepted
+Developer Preview runtime SHA. Review that immutable revision before enabling
+the workflow, and update it deliberately when adopting a later release.
 
 For a guided first run and the complete local gate command, see the
 [quickstart](docs/QUICKSTART.md).
@@ -69,7 +69,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: OWNER/agent-ci-action@FULL_40_CHARACTER_SHA
+      - uses: ConnorBarnhill/agent-ci-action@65c05affea57490e83959d6eeb4cbee5f6763935
         with:
           suite: examples/counter/suite.json
           manifest: examples/counter/releases/agent.release.json

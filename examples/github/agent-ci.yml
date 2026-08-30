@@ -1,4 +1,4 @@
-# Starter template. Replace the all-zero revision before use.
+# Developer Preview example pinned to the accepted runtime revision.
 name: agent-ci
 
 on:
@@ -20,8 +20,8 @@ jobs:
           persist-credentials: false
 
       - name: Check declared agent outcomes
-        # REQUIRED: replace the all-zero value with a reviewed full commit SHA.
-        uses: ConnorBarnhill/agent-ci-action@0000000000000000000000000000000000000000
+        # Review this immutable Developer Preview revision before use.
+        uses: ConnorBarnhill/agent-ci-action@65c05affea57490e83959d6eeb4cbee5f6763935
         with:
           suite: examples/counter/suite.json
           manifest: examples/counter/releases/agent.release.json
