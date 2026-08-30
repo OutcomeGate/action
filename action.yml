@@ -133,7 +133,7 @@ runs:
            [ -n "$AGENTCI_ALLOW_CANDIDATE_ENV" ] || \
            [ -n "$AGENTCI_APPROVED_RELEASE_DIGEST" ]; then
           # The composite Action cannot keep a caller step's env out of its own
-          # setup/install subprocesses. Reject silently before those steps; use
+          # composite setup subprocesses. Reject silently before those steps; use
           # the separately staged local CLI path for credentialed evaluation.
           exit 2
         fi
@@ -142,14 +142,6 @@ runs:
       uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
       with:
         node-version: 20
-
-    - name: Install and build Agent CI
-      shell: bash
-      working-directory: ${{ github.action_path }}
-      run: |
-        set -euo pipefail
-        npm ci --ignore-scripts --no-audit --no-fund
-        npm run build --silent
 
     - name: Run Agent CI gate
       shell: bash

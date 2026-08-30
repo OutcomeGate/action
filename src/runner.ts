@@ -607,7 +607,7 @@ async function executeSuite(
     resolvedRelease.capture?.manifest.schemaVersion !== "agentci.release.v2"
   ) {
     throw new ReleaseValidationError([
-      "pilot execution requires agentci.release.v2 with an explicit candidate credential policy",
+      "release evaluation requires agentci.release.v2 with an explicit candidate credential policy",
     ]);
   }
   const candidateCredentialPolicy =

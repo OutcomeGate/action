@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://agent-ci.invalid/schemas/release.v2.json",
-  "$comment": "Informative pilot sketch. src/release.ts and the candidate-credential policy core are authoritative and add filesystem, capture, process-name, and grant checks that JSON Schema cannot express.",
+  "$comment": "Informative contract sketch. src/release.ts and the candidate-credential policy core are authoritative and add filesystem, capture, process-name, and grant checks that JSON Schema cannot express.",
   "title": "Agent CI release manifest v2",
   "type": "object",
   "required": [

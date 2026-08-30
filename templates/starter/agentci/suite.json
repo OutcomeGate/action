@@ -1,0 +1,35 @@
+{
+  "schemaVersion": "agentci.suite.v1",
+  "name": "starter-agent-ci-release",
+  "version": "1.0.0",
+  "fixture": "starter.counter.v1",
+  "gate": { "minPassRate": 1 },
+  "scenarios": [
+    {
+      "id": "increment-once",
+      "description": "Increment the isolated counter exactly once",
+      "task": { "delta": 2 },
+      "initialState": { "count": 0 },
+      "faults": [],
+      "timeoutMs": 1000,
+      "maxToolCalls": 2,
+      "assertions": [
+        {
+          "id": "final-count",
+          "type": "json_pointer",
+          "source": "state",
+          "pointer": "/count",
+          "operator": "equals",
+          "expected": 2
+        },
+        {
+          "id": "one-increment",
+          "type": "event_count",
+          "tool": "counter.increment",
+          "outcome": "ok",
+          "expected": 1
+        }
+      ]
+    }
+  ]
+}

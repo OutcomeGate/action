@@ -1,0 +1,16 @@
+import type { ReleaseReport, SanitizedPublicationReport } from "./types.js";
+export declare function computeEvidenceDigest(report: Omit<ReleaseReport, "evidenceDigest">): string;
+export declare function verifyEvidenceDigest(report: ReleaseReport): boolean;
+export declare const SANITIZED_PUBLICATION_RETENTION_DAYS = 7;
+export declare function computePublicationDigest(report: Omit<SanitizedPublicationReport, "publicationDigest">): string;
+export declare function createSanitizedPublicationReport(report: ReleaseReport): SanitizedPublicationReport;
+export declare function verifyPublicationDigest(report: SanitizedPublicationReport): boolean;
+export declare function isSanitizedPublicationReport(value: unknown): value is SanitizedPublicationReport;
+export declare function isReleaseReport(value: unknown): value is ReleaseReport;
+export declare function writeTextFile(path: string, content: string): Promise<void>;
+export declare function writeJsonReport(path: string, report: ReleaseReport): Promise<void>;
+export declare function writeSanitizedPublicationReport(path: string, report: SanitizedPublicationReport): Promise<void>;
+export declare function renderMarkdownReport(report: ReleaseReport): string;
+export declare function renderSanitizedPublicationMarkdown(report: SanitizedPublicationReport): string;
+export declare function renderSanitizedConsoleSummary(report: SanitizedPublicationReport): string;
+export declare function renderConsoleSummary(report: ReleaseReport): string;

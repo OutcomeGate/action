@@ -40,7 +40,7 @@ function remoteManifest(): Record<string, unknown> {
     target: {
       kind: "remote",
       endpoint: "https://API.EXAMPLE.TEST:443/v1",
-      tenant: "pilot-sandbox",
+      tenant: "test-sandbox",
       apiVersion: "2026-08-29",
       configuration: { region: "us-central", retries: 0 },
     },

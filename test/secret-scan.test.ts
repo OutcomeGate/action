@@ -50,7 +50,7 @@ test("detects well-known credential shapes without reflecting matched values", (
       `eyJ${"l".repeat(8)}.${"m".repeat(12)}.${"n".repeat(12)}`,
     ],
     ["authorization-header", `Authorization: Bearer ${"P".repeat(24)}`],
-    ["credentialed-url", "https://pilot-user:synthetic-credential-value@example.invalid/api"],
+    ["credentialed-url", "https://test-user:synthetic-credential-value@example.invalid/api"],
     ["suspicious-credential-assignment", "password = \"correct-horse-battery-staple\""],
   ];
   const text = canaries.map(([, value]) => value).join("\n");

@@ -1,0 +1,78 @@
+name: Bug report
+description: Report a reproducible problem using only synthetic, sanitized inputs.
+title: "[Bug]: "
+labels: []
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve Agent CI. Do not include credentials, customer data, real conversations, private evidence, or unsanitized logs. Report vulnerabilities through the Security tab instead.
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Preflight
+      options:
+        - label: I searched existing issues and tested the latest applicable commit.
+          required: true
+        - label: This is not a security vulnerability.
+          required: true
+        - label: Every value in this report and reproduction is synthetic and public-safe.
+          required: true
+  - type: input
+    id: commit
+    attributes:
+      label: Agent CI commit SHA
+      description: Provide the full commit SHA that exhibits the problem.
+      placeholder: 40-character commit SHA
+    validations:
+      required: true
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Execution mode
+      options:
+        - GitHub Action
+        - Local CLI
+        - Both
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Include the operating system, Node.js version, and GitHub runner image when applicable.
+      placeholder: ubuntu-24.04, Node.js 20.x
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal synthetic reproduction
+      description: List exact commands or link to a minimal public repository containing only invented fixtures.
+      placeholder: |
+        1. Create a synthetic suite...
+        2. Run...
+        3. Observe...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include the exit code and PASS, BLOCK, or INDETERMINATE outcome. Sanitize all excerpts.
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional public-safe context
+      description: Optional. Do not paste full logs or canonical evidence.
+    validations:
+      required: false

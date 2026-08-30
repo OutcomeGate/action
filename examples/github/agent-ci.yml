@@ -1,8 +1,9 @@
-# Pilot template. Replace the action owner and all-zero revision before use.
+# Starter template. Replace the all-zero revision before use.
 name: agent-ci
 
 on:
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -19,7 +20,8 @@ jobs:
           persist-credentials: false
 
       - name: Check declared agent outcomes
-        uses: your-org/agent-ci@0000000000000000000000000000000000000000 # Pin a reviewed commit SHA.
+        # REQUIRED: replace the all-zero value with a reviewed full commit SHA.
+        uses: ConnorBarnhill/agent-ci-action@0000000000000000000000000000000000000000
         with:
           suite: examples/counter/suite.json
           manifest: examples/counter/releases/agent.release.json

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://agent-ci.invalid/schemas/report.v3.json",
-  "$comment": "Informative pilot sketch. Runtime structural and internal-digest checks plus evidence-digest verification in src/report.ts are authoritative.",
+  "$comment": "Informative contract sketch. Runtime structural and internal-digest checks plus evidence-digest verification in src/report.ts are authoritative.",
   "title": "Agent CI release report v3",
   "type": "object",
   "required": [

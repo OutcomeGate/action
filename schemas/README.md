@@ -1,8 +1,8 @@
 ---
 type: reference
 title: Agent CI schema status
-description: Status and authority boundary for the pilot-candidate JSON Schema sketches.
-tags: [agent-ci, schemas, pilot-candidate]
+description: Status and authority boundary for the JSON Schema contract sketches.
+tags: [agent-ci, schemas, contract]
 timestamp: 2026-08-29T00:00:00-05:00
 ---
 
@@ -10,7 +10,7 @@ timestamp: 2026-08-29T00:00:00-05:00
 
 These schemas are informative editor and integration aids. They are not the runtime validation authority.
 
-- `release-v2.schema.json` sketches the pilot `agentci.release.v2` contract, including its explicit candidate credential policy; `src/release.ts` and `src/candidate-credential-policy.ts` add canonicalization, filesystem, capture-stability, symlink, mode, size, component, reserved-name, allowlist, value-separation, and digest-grant checks. `release.schema.json` remains the release-v1 compatibility sketch.
+- `release-v2.schema.json` sketches the supported `agentci.release.v2` contract, including its explicit candidate credential policy; `src/release.ts` and `src/candidate-credential-policy.ts` add canonicalization, filesystem, capture-stability, symlink, mode, size, component, reserved-name, allowlist, value-separation, and digest-grant checks. `release.schema.json` remains the release-v1 compatibility sketch.
 - `adapter.schema.json` sketches `agentci.adapter-manifest.v1`; `src/adapter-manifest.ts` adds normalization, HTTPS target, reserved environment-name, filesystem, capture-stability, symlink, mode, size, and composite identity checks.
 - `suite.schema.json` sketches `agentci.suite.v1`; `src/suite.ts`, core adapter checks, and the selected adapter define accepted input.
 - `report.schema.json` sketches `agentci.report.v3`; `src/report.ts` validates exact structure, release/adapter component digests, bounded candidate-stderr metadata, and evaluator identity, while report readers separately verify the evidence digest.

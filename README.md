@@ -1,35 +1,61 @@
 # Agent CI Action
 
 Agent CI is a credential-free GitHub Action and local CLI for deterministic
-release checks of structured, tool-using agents. It runs synthetic declared
+release checks of structured, tool-using agents. It runs declared synthetic
 scenarios, checks final state and ordered tool evidence, and returns one of
 three outcomes:
 
-- `0` — pass
-- `1` — block
-- `2` — indeterminate or invalid configuration
+- `PASS` (`0`) — every scenario and the suite gate passed.
+- `BLOCK` (`1`) — a candidate defect or failed assertion was established.
+- `INDETERMINATE` (`2`) — configuration or execution integrity prevented a
+  trustworthy decision.
 
-## Verify the source
+This repository is a private pre-release candidate. It is intentionally
+`UNLICENSED`; public release remains blocked until the owner selects and adds
+an open-source license. The CLI is not published to npm.
 
-Node.js 20 or newer is required.
+## Try it locally
+
+Node.js 20 or newer and npm are required. First verify a source checkout:
 
 ```bash
 npm ci --ignore-scripts --no-audit --no-fund
 npm run verify
 ```
 
-The verification suite is offline and uses synthetic fixtures. It does not
-require model, service, or customer credentials.
+Then generate the starter in a separate working directory so the source
+checkout stays clean:
+
+```bash
+AGENTCI_SOURCE=/absolute/path/to/agent-ci-action
+cd /path/to/a/scratch-parent
+node "$AGENTCI_SOURCE/dist/src/cli.js" init agentci-starter
+node "$AGENTCI_SOURCE/dist/src/cli.js" check \
+  --suite agentci-starter/agentci/suite.json \
+  --manifest agentci-starter/agentci/release.manifest.json \
+  --adapter-manifest agentci-starter/agentci/adapter.manifest.json \
+  --require-explicit-candidate-policy
+```
+
+`init` creates a new directory and refuses to overwrite an existing path. The
+generated project contains a passing candidate, adapter, suite, release
+manifest, conformance input, and GitHub workflow. Its workflow deliberately
+uses an all-zero Action ref; replace that value with a reviewed full
+40-character commit SHA before enabling it.
+
+For a guided first run and the complete local gate command, see the
+[quickstart](docs/QUICKSTART.md).
 
 ## Use the Action
 
-Pin the Action to a reviewed full 40-character commit SHA:
+Pin the Action to a reviewed full commit SHA:
 
 ```yaml
 name: agent-ci
 
 on:
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -50,29 +76,52 @@ jobs:
           adapter-manifest: examples/counter/adapter.manifest.json
 ```
 
-The caller owns its suite, release bundle, adapter bundle, and output paths.
-The source Action requires a release-v2 manifest and a manifest-backed adapter.
+The Action validates its credential-free profile before setup, installs no
+project dependencies in the caller, and runs the committed prebuilt runtime
+with Node.js 20. It writes a reduced `agentci.publication.v1` JSON/Markdown
+report and appends the sanitized Markdown to the job summary. It does not
+upload canonical evidence or workflow artifacts.
 
-## Security boundary
+## Supported scope
 
-- Do not attach secrets or credentials to the Action step, job, or workflow.
-- Do not use `pull_request_target` to execute pull-request-controlled code.
-- Keep checkout credential persistence disabled.
-- Use only synthetic or explicitly approved sanitized fixtures.
-- Candidate, evaluator, and adapter processes share the runner's OS account;
-  this is not hostile-code isolation.
-- Static secret-pattern checks are defense in depth, not a complete data-loss
-  prevention system.
-- Terminating a process cannot prove that a remote mutation was cancelled or
-  rolled back.
+- release manifest: `agentci.release.v2`
+- candidate runtime: Node.js JSONL protocol v1 with credential policy `none`
+- adapter runtime: manifest-backed Node ESM API v2 with no credentials
+- inputs: synthetic or explicitly approved sanitized fixtures
+- outputs: sanitized publication JSON, Markdown, annotations, and exit status
 
-The Action writes a reduced `agentci.publication.v1` JSON/Markdown derivative
-and job summary. It does not upload canonical evidence or workflow artifacts.
+Agent CI is not a sandbox, secrets manager, DLP system, safety certification,
+or proof of correctness outside the declared scenarios. Candidate, evaluator,
+and adapter processes share the runner OS account. Use reviewed code on a
+disposable GitHub-hosted runner and do not place secrets, customer data, or
+writable production endpoints in the job.
+
+## Documentation
+
+- [Quickstart](docs/QUICKSTART.md) — verify, scaffold, and run the first gate
+- [Candidate protocol](docs/CANDIDATE-PROTOCOL.md) — JSONL-v1 request/response contract
+- [Adapter SDK](docs/ADAPTER-SDK.md) — API-v2 adapter contract and conformance
+- [Suites](docs/SUITES.md) — scenarios, faults, assertions, and decisions
+- [Troubleshooting](docs/TROUBLESHOOTING.md) — fixed local diagnosis sequence
+- [Security model](docs/SECURITY-MODEL.md) — trust boundary and limitations
+- [Releasing](docs/RELEASING.md) — license, package, audit, and exact-SHA gates
+- [Changelog](CHANGELOG.md) — pre-release changes
+
+## Contributing and support
+
+Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing a change. Report
+suspected vulnerabilities through the private process in
+[SECURITY.md](SECURITY.md), and use [SUPPORT.md](SUPPORT.md) for public issue
+guidance. Every contribution must use synthetic fixtures and pass
+`npm run verify`.
 
 ## Source layout
 
 - `action.yml` — composite GitHub Action
+- `dist/src/` — committed prebuilt Action and CLI runtime
 - `src/` — evaluator, CLI, release capture, adapters, and evidence handling
 - `schemas/` — informative JSON schemas; runtime parsers are authoritative
+- `templates/starter/` — credential-free project generated by `agentci init`
 - `examples/` — synthetic release, adapter, and suite fixtures
 - `test/` — unit, adversarial, and end-to-end tests
+- `scripts/` — build, documentation, package, and public-boundary checks

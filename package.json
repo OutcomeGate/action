@@ -2,20 +2,61 @@
   "name": "agent-ci-mvp",
   "version": "0.3.0",
   "private": true,
-  "description": "A local CI release gate for structured, tool-using agents.",
+  "description": "Credential-free release checks for structured, tool-using agents.",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ConnorBarnhill/agent-ci-action.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ConnorBarnhill/agent-ci-action/issues"
+  },
+  "homepage": "https://github.com/ConnorBarnhill/agent-ci-action#readme",
+  "keywords": [
+    "agents",
+    "ci",
+    "evaluation",
+    "github-actions",
+    "testing"
+  ],
   "type": "module",
   "engines": {
     "node": ">=20"
   },
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/src/index.js"
+    }
+  },
   "bin": {
     "agentci": "dist/src/cli.js"
   },
+  "files": [
+    "dist/src/",
+    "templates/starter/",
+    "docs/",
+    "schemas/",
+    "README.md",
+    "CHANGELOG.md",
+    "SECURITY.md",
+    "SUPPORT.md"
+  ],
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "node scripts/build.mjs",
+    "build:release": "npm run build --silent",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "npm run build --silent && node --test dist/test/*.test.js",
     "demo": "npm run build --silent && node dist/scripts/demo.js",
-    "verify": "npm run typecheck && npm test && npm run demo"
+    "audit:public": "node scripts/audit-public-history.mjs && node scripts/audit-public-content.mjs",
+    "docs:check": "node scripts/check-doc-links.mjs",
+    "dist:check": "npm run build:release && node scripts/check-dist.mjs",
+    "pack:check": "node scripts/check-package.mjs && node scripts/smoke-package.mjs",
+    "verify": "npm run typecheck && npm test && npm run demo && npm run audit:public && npm run docs:check && npm run dist:check && npm run pack:check",
+    "release:check": "npm run verify && node scripts/check-release-readiness.mjs",
+    "prepack": "npm run build:release && npm run docs:check && npm run audit:public"
   },
   "devDependencies": {
     "@types/node": "^20.19.43",

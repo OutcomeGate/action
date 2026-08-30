@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { readFile } from "node:fs/promises";
-import { basename, resolve } from "node:path";
+import { basename, relative, resolve } from "node:path";
 import { parseArgs } from "node:util";
 
 import {
@@ -18,6 +18,7 @@ import {
   type KnownSecret,
 } from "./credential-policy.js";
 import { AdapterValidationError, SuiteValidationError } from "./errors.js";
+import { initializeStarter } from "./init.js";
 import { loadReleaseManifest } from "./release.js";
 import {
   renderConsoleSummary,
@@ -46,6 +47,7 @@ import type { RunSuiteOptions } from "./runner.js";
 const HELP = `Agent CI — local release assurance for structured agents
 
 Usage:
+  agentci init [directory]
   agentci check --suite <suite.json> --manifest <release.json> [options]
   agentci check --suite <suite.json> --candidate <candidate.js> --release <name>
   agentci compare --baseline <report.json> --candidate <report.json>
@@ -55,11 +57,11 @@ Usage:
   agentci adapter-check (--adapter-manifest <adapter.json> | --adapter <adapter.js>)
 
 check options:
-  --manifest <path>    Declared release manifest (preferred pilot path)
+  --manifest <path>    Declared release manifest (recommended path)
   --candidate <path>   Legacy entry-file-only candidate
   --release <name>     Required label for a legacy candidate
   --adapter-manifest <path>
-                       Declared isolated adapter (preferred pilot path)
+                       Declared isolated adapter (recommended path)
   --adapter <path>     Legacy in-process module; compatibility only
   --allow-adapter-env <name>
                        Repeatable exact credential allowlist
@@ -70,7 +72,7 @@ check options:
   --approved-release-digest <sha256>
                        Required release pin for candidate credentials
   --require-explicit-candidate-policy
-                       Require agentci.release.v2 (pilot Action default)
+                       Require agentci.release.v2 (source Action default)
   --report <path>      Write the JSON evidence report
   --markdown <path>    Write a Markdown summary
   --publication-report <path>
@@ -137,6 +139,10 @@ function exitCode(verdict: Verdict): number {
     return 1;
   }
   return 2;
+}
+
+function shellQuote(value: string): string {
+  return `'${value.replaceAll("'", `'"'"'`)}'`;
 }
 
 async function readReport(path: string): Promise<ReleaseReport> {
@@ -254,6 +260,33 @@ async function main(): Promise<number> {
   }
 
   const command = parsed.positionals[0];
+  if (command === "init") {
+    if (parsed.positionals.length > 2) {
+      throw new Error("init accepts at most one directory");
+    }
+    const unrelatedOptions = Object.entries(parsed.values).filter(
+      ([name, value]) => name !== "help" && value !== undefined,
+    );
+    if (unrelatedOptions.length > 0) {
+      throw new Error("init does not accept check or validation options");
+    }
+    const target = await initializeStarter(parsed.positionals[1]);
+    const displayTarget = relative(process.cwd(), target);
+    writeScannedStdout(
+      [
+        `created Agent CI starter at ${displayTarget}`,
+        "",
+        "Next:",
+        `  cd ${shellQuote(displayTarget)}`,
+        "  Follow README.md using this CLI path or an installed agentci command.",
+        "",
+        "The generated GitHub workflow is intentionally non-runnable until its all-zero Agent CI ref is replaced with a reviewed full commit SHA.",
+        "",
+      ].join("\n"),
+      "CLI init output",
+    );
+    return 0;
+  }
   if (
     command !== "check" &&
     (parsed.values["allow-candidate-env"] !== undefined ||
@@ -322,7 +355,7 @@ async function main(): Promise<number> {
     );
     if (adapter.identity.source === "external") {
       writeScannedStderr(
-        "warning: legacy --adapter is in-process and module-entry-only; it is not pilot evidence\n",
+        "warning: legacy --adapter is in-process and module-entry-only; it is not release evidence\n",
         "CLI adapter warning",
       );
     }
@@ -401,7 +434,7 @@ async function main(): Promise<number> {
     );
     if (adapter.identity.digestScope === "module-entry-only") {
       writeScannedStderr(
-        "warning: legacy --adapter identifies and imports only one module entry; it is not pilot evidence\n",
+        "warning: legacy --adapter identifies and imports only one module entry; it is not release evidence\n",
         "CLI adapter warning",
       );
     }
@@ -486,13 +519,13 @@ async function main(): Promise<number> {
     const { report, publication, assertNoExecutionSecretLeaks } = execution;
     if (report.release.digestScope === "entry-file-only") {
       writeScannedStderr(
-        "warning: legacy check identifies only the candidate entry file; use --manifest for pilot evidence\n",
+        "warning: legacy check identifies only the candidate entry file; use --manifest for release evidence\n",
         "CLI release warning",
       );
     }
     if (report.adapter.digestScope === "module-entry-only") {
       writeScannedStderr(
-        "warning: this check uses a module-entry-only adapter; use --adapter-manifest for pilot evidence\n",
+        "warning: this check uses a module-entry-only adapter; use --adapter-manifest for release evidence\n",
         "CLI adapter warning",
       );
     }

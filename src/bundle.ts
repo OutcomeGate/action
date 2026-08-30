@@ -117,12 +117,12 @@ async function captureBundleOnce(
       }
       if (captured.length + 1 > MAX_BUNDLE_FILES) {
         fail(createError, [
-          `bundle exceeds the ${MAX_BUNDLE_FILES}-file pilot limit`,
+          `bundle exceeds the ${MAX_BUNDLE_FILES}-file supported limit`,
         ]);
       }
       if (before.size > MAX_BUNDLE_BYTES - totalBytes) {
         fail(createError, [
-          `bundle exceeds the ${MAX_BUNDLE_BYTES}-byte pilot limit`,
+          `bundle exceeds the ${MAX_BUNDLE_BYTES}-byte supported limit`,
         ]);
       }
       const content = await readFile(absolutePath);
@@ -139,7 +139,7 @@ async function captureBundleOnce(
       totalBytes += content.byteLength;
       if (totalBytes > MAX_BUNDLE_BYTES) {
         fail(createError, [
-          `bundle exceeds the ${MAX_BUNDLE_BYTES}-byte pilot limit`,
+          `bundle exceeds the ${MAX_BUNDLE_BYTES}-byte supported limit`,
         ]);
       }
       captured.push({

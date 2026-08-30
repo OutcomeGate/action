@@ -62,19 +62,19 @@ async function actionCredentialPreflightScript(): Promise<string> {
     .join("\n");
 }
 
-async function assertCredentialFreePreflightPrecedesSetup(): Promise<void> {
+async function assertCredentialFreePreflightPrecedesRuntime(): Promise<void> {
   const source = await readFile(actionPath, "utf8");
   const preflight = source.indexOf(
     "    - name: Enforce the credential-free Action boundary\n",
   );
   const setup = source.indexOf("    - name: Set up Node.js\n");
-  const install = source.indexOf("    - name: Install and build Agent CI\n");
+  const gate = source.indexOf("    - name: Run Agent CI gate\n");
 
   assert.notEqual(preflight, -1, "credential-free Action preflight is missing");
   assert.notEqual(setup, -1, "Node.js setup step is missing");
-  assert.notEqual(install, -1, "Action install/build step is missing");
+  assert.notEqual(gate, -1, "Action gate step is missing");
   assert.ok(preflight < setup, "credential preflight must precede Node.js setup");
-  assert.ok(preflight < install, "credential preflight must precede install/build");
+  assert.ok(setup < gate, "Node.js setup must precede the Action gate");
 
   const preflightBlock = source.slice(preflight, setup);
   assert.match(preflightBlock, /shell: sh/);
@@ -83,6 +83,8 @@ async function assertCredentialFreePreflightPrecedesSetup(): Promise<void> {
   assert.match(preflightBlock, /AGENTCI_APPROVED_ADAPTER_DIGEST/);
   assert.match(preflightBlock, /AGENTCI_ALLOW_CANDIDATE_ENV/);
   assert.match(preflightBlock, /AGENTCI_APPROVED_RELEASE_DIGEST/);
+  assert.match(source, /GITHUB_ACTION_PATH\/dist\/src\/cli\.js/);
+  assert.doesNotMatch(source, /npm ci|npm run build/);
 }
 
 async function prepareWorkspace(root: string, name: string): Promise<string> {
@@ -474,7 +476,7 @@ test("the source Action gate preserves 0/1/2 and fails closed on publication", a
 test("the source Action rejects a credential input without emitting its fixed-diagnostic collision", async (context) => {
   const root = await mkdtemp(join(tmpdir(), "agentci-action-diagnostic-test-"));
   context.after(async () => rm(root, { recursive: true, force: true }));
-  await assertCredentialFreePreflightPrecedesSetup();
+  await assertCredentialFreePreflightPrecedesRuntime();
   const script = await actionCredentialPreflightScript();
   const workspace = await prepareWorkspace(root, "diagnostic-collision");
   await mkdir(join(workspace, ".agentci"));

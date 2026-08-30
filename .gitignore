@@ -1,5 +1,11 @@
 node_modules/
-dist/
+# Commit only the prebuilt runtime consumed by the Action and package. Test,
+# demo, example, and source-map compiler output stays local.
+dist/**
+!dist/src/
+!dist/src/**/
+!dist/src/**/*.js
+!dist/src/**/*.d.ts
 .agentci/
 .env
 .env.*

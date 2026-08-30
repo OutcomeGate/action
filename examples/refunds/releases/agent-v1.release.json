@@ -11,7 +11,7 @@
   },
   "model": {
     "kind": "none",
-    "reason": "Deterministic synthetic candidate used to verify the pilot release-gating surface."
+    "reason": "Deterministic synthetic candidate used to verify the release-gating surface."
   },
   "components": {
     "prompts": ["prompt.md"],

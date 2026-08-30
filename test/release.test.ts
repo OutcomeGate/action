@@ -205,7 +205,7 @@ test("rejects oversized files before loading their contents", async (context) =>
 
   await assert.rejects(
     loadReleaseManifest(join(root, "release.json")),
-    /exceeds the 20971520-byte pilot limit/,
+    /exceeds the 20971520-byte supported limit/,
   );
 });
 
