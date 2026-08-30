@@ -68,6 +68,14 @@ const packageJson = JSON.parse(
   await readFile(resolve(projectRoot, "package.json"), "utf8"),
 );
 if (
+  typeof packageJson.name !== "string" ||
+  packageJson.name.length === 0 ||
+  typeof packageJson.version !== "string" ||
+  packageJson.version.length === 0
+) {
+  blockers.push("package-metadata");
+}
+if (
   typeof packageJson.license !== "string" ||
   !supportedLicenses.has(packageJson.license)
 ) {
@@ -77,6 +85,41 @@ if (
   !supportedLicenses.get(packageJson.license)(licenseText)
 ) {
   blockers.push("license-content");
+}
+if (packageJson.private !== true) {
+  blockers.push("npm-private");
+}
+
+try {
+  const packageLock = JSON.parse(
+    await readFile(resolve(projectRoot, "package-lock.json"), "utf8"),
+  );
+  const lockRoot = packageLock?.packages?.[""];
+  if (
+    lockRoot?.name !== packageJson.name ||
+    lockRoot?.version !== packageJson.version ||
+    lockRoot?.license !== packageJson.license
+  ) {
+    blockers.push("package-lock-metadata");
+  }
+} catch {
+  blockers.push("package-lock-metadata");
+}
+
+try {
+  const changelog = await readFile(
+    resolve(projectRoot, "CHANGELOG.md"),
+    "utf8",
+  );
+  const escapedVersion = packageJson.version.replace(
+    /[.*+?^${}()|[\]\\]/gu,
+    "\\$&",
+  );
+  if (!new RegExp(`^## ${escapedVersion}(?:\\s|$)`, "mu").test(changelog)) {
+    blockers.push("changelog-version");
+  }
+} catch {
+  blockers.push("changelog-version");
 }
 
 const status = spawnSync(
@@ -98,9 +141,9 @@ if (status.stdout.length > 0) {
 
 if (blockers.length > 0) {
   process.stderr.write(
-    `release remains private: ${blockers.length} explicit decision(s) unresolved (${blockers.join(", ")})\n`,
+    `release blocked: ${blockers.length} readiness check(s) failed (${blockers.join(", ")})\n`,
   );
   process.exitCode = 1;
 } else {
-  process.stdout.write("license gate passed; repository may proceed to final public-release review\n");
+  process.stdout.write("release readiness passed; candidate may proceed to final release review\n");
 }

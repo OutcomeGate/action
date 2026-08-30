@@ -27,8 +27,8 @@ npm run verify
 and executes the synthetic demonstrations. It does not require a model,
 service, or customer credential.
 
-The package is currently private and is not an npm-distributed CLI. Commands in
-this guide therefore use the locally built entry point:
+The CLI is not published to npm, so commands in this guide use the checkout's
+locally built entry point:
 
 ```bash
 npm run build --silent

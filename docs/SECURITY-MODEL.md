@@ -114,10 +114,10 @@ and publication output before enabling a check on an untrusted pull request.
 
 The repository release audits have the same limitation: path, history, binary,
 email, credential-shape, and sensitive-phrase policies reduce accidental
-publication but cannot prove that innocuously named prose is non-sensitive. A
-future visibility change requires a human review of the complete clean-clone
-tree inventory and candidate diff, with its commit and manifest digest recorded
-outside this repository.
+publication but cannot prove that innocuously named prose is non-sensitive.
+Initial publication and every later release require a human review of the
+complete clean-clone tree inventory and candidate diff, with its commit and
+manifest digest recorded outside this repository.
 
 The seven-day value in the publication is a recommendation, not automatic
 deletion. The repository owner must configure retention and remove every copy,

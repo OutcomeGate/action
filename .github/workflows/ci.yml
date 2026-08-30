@@ -12,6 +12,10 @@ jobs:
   verify:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [20, 22, 24]
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -19,7 +23,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
-          node-version: 20
+          node-version: ${{ matrix.node-version }}
           cache: npm
       - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm run verify

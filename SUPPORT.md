@@ -1,8 +1,7 @@
 # Support
 
-Agent CI is a pre-1.0 project being prepared for open-source publication and is
-maintained on a best-effort basis. There is no response-time or compatibility
-SLA.
+Agent CI is an Apache-2.0-licensed, pre-1.0 Developer Preview candidate. It is
+maintained on a best-effort basis, with no response-time or compatibility SLA.
 
 ## Where to ask
 
@@ -28,8 +27,8 @@ for a maintainer to establish an appropriate channel.
 
 ## Supported scope
 
-Public support covers the credential-free GitHub Action, the local CLI,
-documented schemas and protocols, and the included synthetic examples. It does
-not include review of proprietary prompts or data, production incident
-response, custom adapter implementation, or guarantees that terminating a
-local process cancels an external side effect.
+After publication, public support will cover the credential-free GitHub Action,
+the local CLI, documented schemas and protocols, and the included synthetic
+examples. It will not include review of proprietary prompts or data, production
+incident response, custom adapter implementation, or guarantees that
+terminating a local process cancels an external side effect.

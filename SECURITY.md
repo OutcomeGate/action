@@ -2,18 +2,19 @@
 
 ## Supported versions
 
-Agent CI is pre-1.0. Security fixes are made against the current default
-branch and, when applicable, the latest published commit. Older commits and
-forks are not maintained with security backports.
+The Agent CI Developer Preview candidate is pre-1.0. Security fixes are made
+against the current default branch and, when applicable, the accepted candidate
+SHA. Older commits and forks are not maintained with security backports.
 
 | Version | Supported |
 | --- | --- |
-| Current default branch / latest published SHA | Yes |
+| Current default branch / accepted candidate SHA | Yes |
 | Older commits | No |
 
 ## Report a vulnerability privately
 
-Use GitHub's **Security** tab and select **Report a vulnerability**:
+After publication, use GitHub's **Security** tab and select **Report a
+vulnerability**:
 
 <https://github.com/ConnorBarnhill/agent-ci-action/security/advisories/new>
 

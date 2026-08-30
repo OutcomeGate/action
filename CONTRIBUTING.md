@@ -2,7 +2,12 @@
 
 Thank you for helping make deterministic agent release checks easier to adopt.
 Contributions should preserve the credential-free, synthetic-data boundary of
-the public project.
+the planned public Developer Preview.
+
+Unless explicitly stated otherwise, a contribution intentionally submitted for
+inclusion is provided under the [Apache License 2.0](LICENSE), consistent with
+Section 5 of the license. Submit only work you created or are authorized to
+contribute.
 
 ## Set up a development checkout
 

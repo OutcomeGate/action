@@ -1,13 +1,16 @@
 #!/usr/bin/env node
 
 import { spawnSync } from "node:child_process";
-import { mkdtemp } from "node:fs/promises";
+import { mkdtemp, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const packageJson = JSON.parse(
+  await readFile(resolve(projectRoot, "package.json"), "utf8"),
+);
 const cache = await mkdtemp(join(tmpdir(), "agentci-pack-cache-"));
 const result = spawnSync(
   process.platform === "win32" ? "npm.cmd" : "npm",
@@ -39,12 +42,27 @@ if (!Array.isArray(records) || records.length !== 1) {
 const record = records[0];
 const paths = new Set(record.files.map((entry) => entry.path));
 const required = [
+  "LICENSE",
   "README.md",
   "SECURITY.md",
   "dist/src/cli.js",
   "dist/src/index.js",
   "docs/QUICKSTART.md",
   "templates/starter/agentci/suite.json",
+];
+const allowedFiles = new Set([
+  "CHANGELOG.md",
+  "LICENSE",
+  "README.md",
+  "SECURITY.md",
+  "SUPPORT.md",
+  "package.json",
+]);
+const allowedPrefixes = [
+  "dist/src/",
+  "docs/",
+  "schemas/",
+  "templates/starter/",
 ];
 const forbiddenPrefixes = [
   ".github/",
@@ -54,10 +72,18 @@ const forbiddenPrefixes = [
   "test/",
 ];
 const failures = [];
+if (record.name !== packageJson.name) failures.push("package-name");
+if (record.version !== packageJson.version) failures.push("package-version");
 for (const path of required) {
   if (!paths.has(path)) failures.push(`missing:${path}`);
 }
 for (const path of paths) {
+  if (
+    !allowedFiles.has(path) &&
+    !allowedPrefixes.some((prefix) => path.startsWith(prefix))
+  ) {
+    failures.push(`unexpected:${path}`);
+  }
   if (forbiddenPrefixes.some((prefix) => path.startsWith(prefix))) {
     failures.push(`unexpected:${path}`);
   }

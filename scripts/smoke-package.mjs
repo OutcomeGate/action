@@ -72,12 +72,35 @@ try {
     "src",
     "cli.js",
   );
-  run(process.execPath, [cli, "init", "starter"], workspace);
-  const starter = join(workspace, "starter");
-  const output = run(
+  const installedCli = join(
+    consumer,
+    "node_modules",
+    ".bin",
+    process.platform === "win32" ? "agentci.cmd" : "agentci",
+  );
+  const runCli = (args, cwd) =>
+    process.platform === "win32"
+      ? run(process.execPath, [cli, ...args], cwd)
+      : run(installedCli, args, cwd);
+
+  const help = runCli(["--help"], consumer);
+  if (!/^Usage:/m.test(help) || !/agentci check/u.test(help)) {
+    throw new Error("installed package binary did not return Agent CI help");
+  }
+  run(
     process.execPath,
     [
-      cli,
+      "--input-type=module",
+      "--eval",
+      `const api = await import(${JSON.stringify(packageJson.name)}); if (typeof api.runSuite !== "function") throw new Error("missing runSuite export");`,
+    ],
+    consumer,
+  );
+
+  runCli(["init", "starter"], workspace);
+  const starter = join(workspace, "starter");
+  const output = runCli(
+    [
       "check",
       "--suite",
       "agentci/suite.json",

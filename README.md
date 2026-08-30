@@ -10,9 +10,9 @@ three outcomes:
 - `INDETERMINATE` (`2`) — configuration or execution integrity prevented a
   trustworthy decision.
 
-This repository is a private pre-release candidate. It is intentionally
-`UNLICENSED`; public release remains blocked until the owner selects and adds
-an open-source license. The CLI is not published to npm.
+This repository is the Apache-2.0-licensed Developer Preview candidate. It
+remains private pending the final publication controls. The preview will be
+distributed from a reviewed GitHub commit; the CLI is not published to npm.
 
 ## Try it locally
 
@@ -105,7 +105,7 @@ writable production endpoints in the job.
 - [Troubleshooting](docs/TROUBLESHOOTING.md) — fixed local diagnosis sequence
 - [Security model](docs/SECURITY-MODEL.md) — trust boundary and limitations
 - [Releasing](docs/RELEASING.md) — license, package, audit, and exact-SHA gates
-- [Changelog](CHANGELOG.md) — pre-release changes
+- [Changelog](CHANGELOG.md) — Developer Preview release history
 
 ## Contributing and support
 
@@ -114,6 +114,10 @@ suspected vulnerabilities through the private process in
 [SECURITY.md](SECURITY.md), and use [SUPPORT.md](SUPPORT.md) for public issue
 guidance. Every contribution must use synthetic fixtures and pass
 `npm run verify`.
+
+## License
+
+Agent CI is licensed under the [Apache License 2.0](LICENSE).
 
 ## Source layout
 
