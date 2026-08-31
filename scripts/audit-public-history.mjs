@@ -51,6 +51,7 @@ const DOCUMENTATION_FILES = new Set([
   "docs/SECURITY-MODEL.md",
   "docs/SUITES.md",
   "docs/TROUBLESHOOTING.md",
+  "docs/MODEL-COMPRESSION.md",
 ]);
 
 const SCRIPT_FILES = new Set([
@@ -62,6 +63,7 @@ const SCRIPT_FILES = new Set([
   "scripts/check-package.mjs",
   "scripts/check-release-readiness.mjs",
   "scripts/demo.ts",
+  "scripts/model-compression-demo.ts",
   "scripts/smoke-package.mjs",
 ]);
 

@@ -1,0 +1,30 @@
+{
+  "schemaVersion": "agentci.release.v2",
+  "name": "support-router-int8",
+  "runtime": {
+    "kind": "node-jsonl",
+    "protocolVersion": 1,
+    "entry": "candidate.mjs"
+  },
+  "bundle": { "root": "router-int8.bundle" },
+  "model": {
+    "kind": "local",
+    "identifier": "support-ticket-linear-router",
+    "revision": "int8-symmetric",
+    "format": "outcomegate.linear-router.v1",
+    "artifacts": ["model.json"],
+    "configuration": {
+      "precision": "int8",
+      "quantization": {
+        "scheme": "symmetric-per-tensor",
+        "scale": 0.0125,
+        "zeroPoint": 0
+      }
+    }
+  },
+  "components": {
+    "prompts": ["prompt.md"],
+    "toolSchemas": ["tool-schema.json"]
+  },
+  "candidate": { "credentials": { "kind": "none" } }
+}

@@ -333,6 +333,18 @@ function isReleaseModel(value) {
     if (value.kind === "none") {
         return typeof value.reason === "string" && value.reason.length > 0;
     }
+    if (value.kind === "local") {
+        return (typeof value.identifier === "string" &&
+            value.identifier.length > 0 &&
+            typeof value.revision === "string" &&
+            value.revision.length > 0 &&
+            typeof value.format === "string" &&
+            value.format.length > 0 &&
+            Array.isArray(value.artifacts) &&
+            value.artifacts.length > 0 &&
+            value.artifacts.every((artifact) => typeof artifact === "string" && artifact.length > 0) &&
+            (value.configuration === undefined || isJsonValue(value.configuration)));
+    }
     return (value.kind === "remote" &&
         typeof value.provider === "string" &&
         value.provider.length > 0 &&
@@ -428,18 +440,25 @@ function isManifestReleaseIdentity(value) {
     const entry = byPath.get(parsedManifest.runtime.entry);
     const promptFiles = parsedManifest.components.prompts.map((path) => byPath.get(path));
     const toolSchemaFiles = parsedManifest.components.toolSchemas.map((path) => byPath.get(path));
+    const modelArtifactFiles = parsedManifest.model.kind === "local"
+        ? parsedManifest.model.artifacts.map((path) => byPath.get(path))
+        : [];
     if (value.name !== parsedManifest.name ||
         value.entryPath !== parsedManifest.runtime.entry ||
         entry === undefined ||
         entry.digest !== value.entryFileDigest ||
         promptFiles.some((file) => file === undefined) ||
         toolSchemaFiles.some((file) => file === undefined) ||
+        modelArtifactFiles.some((file) => file === undefined) ||
         !isReleaseModel(parsedManifest.model)) {
         return false;
     }
     const classified = new Set([
         ...parsedManifest.components.prompts,
         ...parsedManifest.components.toolSchemas,
+        ...(parsedManifest.model.kind === "local"
+            ? parsedManifest.model.artifacts
+            : []),
     ]);
     const harnessFiles = fileRecords.filter((file) => !classified.has(file.path));
     const manifestVersion = parsedManifest.schemaVersion === "agentci.release.v2" ? 2 : 1;

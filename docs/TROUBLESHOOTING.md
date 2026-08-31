@@ -70,6 +70,10 @@ a trustworthy release decision.
   component paths inside that bundle.
 - Remove symlinks, hard links, special files, and empty nested directories.
 - Keep the bundle at or below 1,000 files and 20 MiB.
+- For `model.kind: "local"`, keep every artifact inside `bundle.root`, list each
+  normalized relative path exactly once, and do not reuse the runtime entry,
+  prompt, or tool-schema paths. A missing or overlapping artifact is a manifest
+  error, not an execution failure.
 - For the Action, use release v2 with
   `candidate.credentials.kind: "none"` and an adapter with an empty credential
   environment list.

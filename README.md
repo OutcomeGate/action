@@ -87,6 +87,8 @@ upload canonical evidence or workflow artifacts.
 - release manifest: `agentci.release.v2`
 - candidate runtime: Node.js JSONL protocol v1 with credential policy `none`
 - adapter runtime: manifest-backed Node ESM API v2 with no credentials
+- model identity: no model, declared remote model, or closed release-v2 local
+  model artifacts within the bundle boundary
 - inputs: synthetic or explicitly approved sanitized fixtures
 - outputs: sanitized publication JSON, Markdown, annotations, and exit status
 
@@ -102,6 +104,7 @@ writable production endpoints in the job.
 - [Candidate protocol](docs/CANDIDATE-PROTOCOL.md) — JSONL-v1 request/response contract
 - [Adapter SDK](docs/ADAPTER-SDK.md) — API-v2 adapter contract and conformance
 - [Suites](docs/SUITES.md) — scenarios, faults, assertions, and decisions
+- [Model compression](docs/MODEL-COMPRESSION.md) — FP32/INT8/INT4 regression example
 - [Troubleshooting](docs/TROUBLESHOOTING.md) — fixed local diagnosis sequence
 - [Security model](docs/SECURITY-MODEL.md) — trust boundary and limitations
 - [Releasing](docs/RELEASING.md) — license, package, audit, and exact-SHA gates

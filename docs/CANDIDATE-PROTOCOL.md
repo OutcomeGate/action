@@ -52,6 +52,18 @@ The model declaration is evidence, not a model runner:
 - `kind: "remote"` records `provider`, `identifier`, `revision`, and optional
   JSON `configuration`; the candidate itself remains responsible for any model
   call.
+- Release v2 also accepts `kind: "local"` with non-empty `identifier`,
+  `revision`, `format`, and `artifacts` fields plus optional JSON
+  `configuration`. Every artifact path is a normalized relative path to a
+  regular file inside `bundle.root`; paths are sorted, must be unique, must
+  exist, and cannot overlap the runtime entry, prompts, or tool schemas.
+
+For a local model, the manifest and model-declaration digests bind the declared
+artifact paths and metadata. The bundle and release digests bind their exact
+bytes, modes, and paths. This establishes which closed release was evaluated;
+it does not prove that arbitrary candidate code loaded every declared artifact
+or that descriptive configuration fields are truthful. The existing 1,000-file
+and 20 MiB bundle limits still apply.
 
 The v0.3 Action requires `agentci.release.v2` and an explicit
 `candidate.credentials` policy. Use `{"kind":"none"}`. Although the local CLI

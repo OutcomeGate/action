@@ -52,11 +52,12 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "npm run build --silent && node --test dist/test/*.test.js",
     "demo": "npm run build --silent && node dist/scripts/demo.js",
+    "demo:model-compression": "npm run build --silent && node dist/scripts/model-compression-demo.js",
     "audit:public": "node scripts/audit-public-history.mjs && node scripts/audit-public-content.mjs",
     "docs:check": "node scripts/check-doc-links.mjs",
     "dist:check": "npm run build:release && node scripts/check-dist.mjs",
     "pack:check": "node scripts/check-package.mjs && node scripts/smoke-package.mjs",
-    "verify": "npm run typecheck && npm test && npm run demo && npm run audit:public && npm run docs:check && npm run dist:check && npm run pack:check",
+    "verify": "npm run typecheck && npm test && npm run demo && npm run demo:model-compression && npm run audit:public && npm run docs:check && npm run dist:check && npm run pack:check",
     "release:check": "npm run verify && node scripts/check-release-readiness.mjs",
     "prepack": "npm run build:release && npm run docs:check && npm run audit:public"
   },
