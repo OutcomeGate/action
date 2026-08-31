@@ -472,42 +472,71 @@ test("duplicate candidate JSON members cannot discard an escaped credential", as
   assert.equal(JSON.stringify(result).includes(secret), false);
 });
 
-test("a scenario deadline during an active hosted transition is indeterminate", async (context) => {
-  const root = await mkdtemp(join(tmpdir(), "agentci-driver-transition-test-"));
-  context.after(async () => rm(root, { recursive: true, force: true }));
-  const candidatePath = join(root, "candidate.mjs");
-  await writeFile(
-    candidatePath,
-    `import { createInterface } from "node:readline";\n` +
-      `createInterface({ input: process.stdin }).on("line", (line) => {\n` +
-      `  const message = JSON.parse(line);\n` +
-      `  if (message.type === "start") process.stdout.write(JSON.stringify({ v: 1, type: "call", id: "one", tool: "noop", arguments: {} }) + "\\n");\n` +
-      `  if (message.type === "result") process.stdout.write(JSON.stringify({ v: 1, type: "done", output: {} }) + "\\n");\n` +
-      `});\n`,
-    "utf8",
-  );
-  let aborted = false;
+test(
+  "a scenario deadline during an active hosted transition is indeterminate",
+  { timeout: 5_000 },
+  async (context) => {
+    const root = await mkdtemp(join(tmpdir(), "agentci-driver-transition-test-"));
+    context.after(async () => rm(root, { recursive: true, force: true }));
+    context.mock.timers.enable({ apis: ["setTimeout"] });
+    const candidatePath = join(root, "candidate.mjs");
+    await writeFile(
+      candidatePath,
+      `import { createInterface } from "node:readline";\n` +
+        `createInterface({ input: process.stdin }).on("line", (line) => {\n` +
+        `  const message = JSON.parse(line);\n` +
+        `  if (message.type === "start") process.stdout.write(JSON.stringify({ v: 1, type: "call", id: "one", tool: "noop", arguments: {} }) + "\\n");\n` +
+        `  if (message.type === "result") process.stdout.write(JSON.stringify({ v: 1, type: "done", output: {} }) + "\\n");\n` +
+        `});\n`,
+      "utf8",
+    );
+    let aborted = false;
+    let markTransitionStarted!: () => void;
+    const transitionStarted = new Promise<void>((resolveStarted) => {
+      markTransitionStarted = resolveStarted;
+    });
+    let releaseTransition!: () => void;
+    const transitionReleased = new Promise<void>((resolveReleased) => {
+      releaseTransition = resolveReleased;
+    });
 
-  const result = await runCandidateProcess({
-    candidatePath,
-    scenario: { ...scenario, timeoutMs: 100 },
-    environment: {
-      tools: ["noop"],
-      async call() {
-        return {};
+    const resultPromise = runCandidateProcess({
+      candidatePath,
+      scenario: { ...scenario, timeoutMs: 100 },
+      environment: {
+        tools: ["noop"],
+        async call() {
+          return {};
+        },
+        snapshot: () => ({}),
+        async transition() {
+          markTransitionStarted();
+          await transitionReleased;
+          return {
+            beforeState: {},
+            afterState: {},
+            outcome: { kind: "ok", content: {} },
+          };
+        },
+        abort() {
+          aborted = true;
+          releaseTransition();
+        },
       },
-      snapshot: () => ({}),
-      transition: () => new Promise(() => undefined),
-      abort() {
-        aborted = true;
-      },
-    },
-  });
+    });
+    await transitionStarted;
+    context.mock.timers.tick(100);
+    const result = await resultPromise;
 
-  assert.equal(result.verdict, "indeterminate");
-  assert.equal(aborted, true);
-  assert.doesNotMatch(result.reasons.join(" "), /candidate timed out/);
-});
+    assert.equal(result.verdict, "indeterminate");
+    assert.equal(aborted, true);
+    assert.match(
+      result.reasons.join(" "),
+      /scenario deadline expired during an adapter transition/,
+    );
+    assert.doesNotMatch(result.reasons.join(" "), /candidate timed out/);
+  },
+);
 
 test("trusted external adapters can return structural expected tool errors", async () => {
   const result = await runCandidateProcess({

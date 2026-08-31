@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Report a security vulnerability
-    url: https://github.com/ConnorBarnhill/agent-ci-action/security/advisories/new
+    url: https://github.com/OutcomeGate/agent-ci-action/security/advisories/new
     about: Report security issues privately; never include vulnerability details in a public issue.
   - name: Read the support policy
-    url: https://github.com/ConnorBarnhill/agent-ci-action/blob/main/SUPPORT.md
+    url: https://github.com/OutcomeGate/agent-ci-action/blob/main/SUPPORT.md
     about: Check supported scope and the information needed for a useful report.

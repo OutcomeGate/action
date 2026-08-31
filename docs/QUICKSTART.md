@@ -13,7 +13,7 @@ the example to another workflow.
 
 Prerequisites:
 
-- Node.js 20 or newer
+- Node.js 24.11.0 or newer
 - npm
 
 From the repository root:
@@ -121,7 +121,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: ConnorBarnhill/agent-ci-action@65c05affea57490e83959d6eeb4cbee5f6763935
+      - uses: OutcomeGate/agent-ci-action@65c05affea57490e83959d6eeb4cbee5f6763935
         with:
           suite: examples/counter/suite.json
           manifest: examples/counter/releases/agent.release.json
@@ -130,10 +130,10 @@ jobs:
 
 This Developer Preview pin is the accepted runtime commit. Review it before use
 and replace it only with a later accepted full commit SHA. The Action validates
-its credential-free profile, sets up Node.js 20, and runs the committed prebuilt
-runtime. It does not run `npm install` or build the project in the caller. It
-writes `.agentci/report.json` and `.agentci/report.md`, appends the sanitized
-Markdown to the job summary, and does not upload an artifact.
+its credential-free profile, sets up Node.js 24 LTS, and runs the committed
+prebuilt runtime. It does not run `npm install` or build the project in the
+caller. It writes `.agentci/report.json` and `.agentci/report.md`, appends the
+sanitized Markdown to the job summary, and does not upload an artifact.
 
 The Action accepts custom `report` and `markdown` paths only when they are
 distinct repository-relative files beneath `.agentci/`. Suite and manifest

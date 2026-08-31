@@ -16,7 +16,7 @@ SHA. Older commits and forks are not maintained with security backports.
 After publication, use GitHub's **Security** tab and select **Report a
 vulnerability**:
 
-<https://github.com/ConnorBarnhill/agent-ci-action/security/advisories/new>
+<https://github.com/OutcomeGate/agent-ci-action/security/advisories/new>
 
 Do not put vulnerability details in a public issue. If private vulnerability
 reporting is unavailable, open a public issue that only asks the maintainer to

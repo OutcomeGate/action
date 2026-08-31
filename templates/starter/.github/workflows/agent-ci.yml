@@ -19,7 +19,7 @@ jobs:
 
       # Accepted Apache-2.0 Developer Preview runtime. Review this immutable
       # revision before use; update only to another accepted full SHA.
-      - uses: ConnorBarnhill/agent-ci-action@65c05affea57490e83959d6eeb4cbee5f6763935
+      - uses: OutcomeGate/agent-ci-action@65c05affea57490e83959d6eeb4cbee5f6763935
         with:
           suite: agentci/suite.json
           manifest: agentci/release.manifest.json

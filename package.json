@@ -6,12 +6,12 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ConnorBarnhill/agent-ci-action.git"
+    "url": "git+https://github.com/OutcomeGate/agent-ci-action.git"
   },
   "bugs": {
-    "url": "https://github.com/ConnorBarnhill/agent-ci-action/issues"
+    "url": "https://github.com/OutcomeGate/agent-ci-action/issues"
   },
-  "homepage": "https://github.com/ConnorBarnhill/agent-ci-action#readme",
+  "homepage": "https://github.com/OutcomeGate/agent-ci-action#readme",
   "keywords": [
     "agents",
     "ci",
@@ -21,7 +21,7 @@
   ],
   "type": "module",
   "engines": {
-    "node": ">=20"
+    "node": ">=24.11.0"
   },
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -60,7 +60,7 @@
     "prepack": "npm run build:release && npm run docs:check && npm run audit:public"
   },
   "devDependencies": {
-    "@types/node": "^20.19.43",
+    "@types/node": "^24.13.3",
     "typescript": "^5.9.3"
   }
 }

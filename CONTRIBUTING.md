@@ -11,7 +11,7 @@ contribute.
 
 ## Set up a development checkout
 
-Node.js 20 or newer is required.
+Node.js 24.11.0 or newer is required.
 
 ```bash
 npm ci --ignore-scripts --no-audit --no-fund

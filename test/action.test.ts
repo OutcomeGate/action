@@ -76,6 +76,9 @@ async function assertCredentialFreePreflightPrecedesRuntime(): Promise<void> {
   assert.ok(preflight < setup, "credential preflight must precede Node.js setup");
   assert.ok(setup < gate, "Node.js setup must precede the Action gate");
 
+  const setupBlock = source.slice(setup, gate);
+  assert.match(setupBlock, /^\s+node-version: 24$/m);
+
   const preflightBlock = source.slice(preflight, setup);
   assert.match(preflightBlock, /shell: sh/);
   assert.match(preflightBlock, /exit 2/);

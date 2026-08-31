@@ -42,7 +42,7 @@ body:
     attributes:
       label: Environment
       description: Include the operating system, Node.js version, and GitHub runner image when applicable.
-      placeholder: ubuntu-24.04, Node.js 20.x
+      placeholder: ubuntu-24.04, Node.js 24.x
     validations:
       required: true
   - type: textarea

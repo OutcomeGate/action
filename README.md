@@ -16,7 +16,7 @@ distributed from a reviewed GitHub commit; the CLI is not published to npm.
 
 ## Try it locally
 
-Node.js 20 or newer and npm are required. First verify a source checkout:
+Node.js 24.11.0 or newer and npm are required. First verify a source checkout:
 
 ```bash
 npm ci --ignore-scripts --no-audit --no-fund
@@ -69,7 +69,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: ConnorBarnhill/agent-ci-action@65c05affea57490e83959d6eeb4cbee5f6763935
+      - uses: OutcomeGate/agent-ci-action@65c05affea57490e83959d6eeb4cbee5f6763935
         with:
           suite: examples/counter/suite.json
           manifest: examples/counter/releases/agent.release.json
@@ -78,7 +78,7 @@ jobs:
 
 The Action validates its credential-free profile before setup, installs no
 project dependencies in the caller, and runs the committed prebuilt runtime
-with Node.js 20. It writes a reduced `agentci.publication.v1` JSON/Markdown
+with Node.js 24 LTS. It writes a reduced `agentci.publication.v1` JSON/Markdown
 report and appends the sanitized Markdown to the job summary. It does not
 upload canonical evidence or workflow artifacts.
 

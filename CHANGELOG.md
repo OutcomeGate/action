@@ -16,4 +16,5 @@ while its final publication controls are being validated.
 - Require manifest-backed adapter-v2 execution for the source Action.
 - Add sanitized publication-v1 output and fail-closed `0`/`1`/`2` behavior.
 - Add static secret-pattern checks and exact known-credential boundary checks.
+- Require Node.js 24.11.0 or newer and run the Action on Node.js 24 LTS.
 - Validate the credential-free Action on GitHub-hosted Ubuntu using an exact SHA.
