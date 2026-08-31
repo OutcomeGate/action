@@ -1,0 +1,14 @@
+{
+  "schemaVersion": "outcomegate.linear-router.v1",
+  "encoding": "symmetric-integer",
+  "bits": 8,
+  "scale": 0.0125,
+  "zeroPoint": 0,
+  "bias": -1,
+  "weights": {
+    "billing": 23,
+    "duplicate": -64,
+    "refund": -19,
+    "urgent": 112
+  }
+}

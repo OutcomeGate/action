@@ -1,0 +1,14 @@
+{
+  "tools": [
+    {
+      "name": "ticket.auto_resolve",
+      "description": "Resolve a routine ticket automatically.",
+      "inputSchema": { "type": "object", "additionalProperties": false }
+    },
+    {
+      "name": "ticket.escalate",
+      "description": "Escalate a ticket for specialist review.",
+      "inputSchema": { "type": "object", "additionalProperties": false }
+    }
+  ]
+}

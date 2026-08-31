@@ -1,0 +1,111 @@
+{
+  "schemaVersion": "agentci.suite.v1",
+  "name": "local-model-compression-routing",
+  "version": "1.0.0",
+  "fixture": "support-routing.v1",
+  "gate": { "minPassRate": 1 },
+  "scenarios": [
+    {
+      "id": "urgent-service-ticket",
+      "description": "A high-margin urgent ticket remains escalated",
+      "task": { "text": "urgent" },
+      "initialState": { "route": null, "decisionCount": 0 },
+      "faults": [],
+      "timeoutMs": 1000,
+      "maxToolCalls": 1,
+      "assertions": [
+        {
+          "id": "route-is-escalate",
+          "type": "json_pointer",
+          "source": "state",
+          "pointer": "/route",
+          "operator": "equals",
+          "expected": "escalate"
+        },
+        {
+          "id": "one-decision",
+          "type": "json_pointer",
+          "source": "state",
+          "pointer": "/decisionCount",
+          "operator": "equals",
+          "expected": 1
+        },
+        {
+          "id": "one-escalation-call",
+          "type": "event_count",
+          "tool": "ticket.escalate",
+          "outcome": "ok",
+          "expected": 1
+        }
+      ]
+    },
+    {
+      "id": "borderline-billing-refund",
+      "description": "A near-boundary billing refund remains escalated",
+      "task": { "text": "billing refund" },
+      "initialState": { "route": null, "decisionCount": 0 },
+      "faults": [],
+      "timeoutMs": 1000,
+      "maxToolCalls": 1,
+      "assertions": [
+        {
+          "id": "route-is-escalate",
+          "type": "json_pointer",
+          "source": "state",
+          "pointer": "/route",
+          "operator": "equals",
+          "expected": "escalate"
+        },
+        {
+          "id": "one-decision",
+          "type": "json_pointer",
+          "source": "state",
+          "pointer": "/decisionCount",
+          "operator": "equals",
+          "expected": 1
+        },
+        {
+          "id": "one-escalation-call",
+          "type": "event_count",
+          "tool": "ticket.escalate",
+          "outcome": "ok",
+          "expected": 1
+        }
+      ]
+    },
+    {
+      "id": "routine-duplicate",
+      "description": "A high-margin duplicate remains automatically resolved",
+      "task": { "text": "duplicate" },
+      "initialState": { "route": null, "decisionCount": 0 },
+      "faults": [],
+      "timeoutMs": 1000,
+      "maxToolCalls": 1,
+      "assertions": [
+        {
+          "id": "route-is-auto-resolve",
+          "type": "json_pointer",
+          "source": "state",
+          "pointer": "/route",
+          "operator": "equals",
+          "expected": "auto_resolve"
+        },
+        {
+          "id": "one-decision",
+          "type": "json_pointer",
+          "source": "state",
+          "pointer": "/decisionCount",
+          "operator": "equals",
+          "expected": 1
+        },
+        {
+          "id": "one-automatic-call",
+          "type": "event_count",
+          "tool": "ticket.auto_resolve",
+          "outcome": "ok",
+          "expected": 1
+        }
+      ]
+    }
+  ]
+}

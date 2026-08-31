@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "agentci.release.v2",
+  "name": "support-router-fp32",
+  "runtime": {
+    "kind": "node-jsonl",
+    "protocolVersion": 1,
+    "entry": "candidate.mjs"
+  },
+  "bundle": { "root": "router-fp32.bundle" },
+  "model": {
+    "kind": "local",
+    "identifier": "support-ticket-linear-router",
+    "revision": "fp32-reference",
+    "format": "outcomegate.linear-router.v1",
+    "artifacts": ["model.json"],
+    "configuration": { "precision": "float32" }
+  },
+  "components": {
+    "prompts": ["prompt.md"],
+    "toolSchemas": ["tool-schema.json"]
+  },
+  "candidate": { "credentials": { "kind": "none" } }
+}

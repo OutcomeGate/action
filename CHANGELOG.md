@@ -3,6 +3,11 @@
 All notable changes to OutcomeGate are recorded here. This entry describes the
 Apache-2.0 Developer Preview; the npm package remains intentionally unpublished.
 
+## Unreleased
+
+- Add release-v2 local-model artifact identity and validation.
+- Add a deterministic FP32-to-INT8/INT4 workflow-regression example.
+
 ## 0.3.0 Developer Preview
 
 - Adopt the OutcomeGate name, `@outcomegate/cli` package metadata, and sole

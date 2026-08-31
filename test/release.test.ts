@@ -79,6 +79,174 @@ test("release v2 requires an explicit closed candidate credential policy", () =>
   );
 });
 
+test("release v2 accepts closed local model artifacts and rejects unsafe variants", () => {
+  const base = {
+    schemaVersion: "agentci.release.v2",
+    name: "local-model",
+    runtime: { kind: "node-jsonl", protocolVersion: 1, entry: "candidate.mjs" },
+    bundle: { root: "bundle" },
+    model: {
+      kind: "local",
+      identifier: "local-linear-model",
+      revision: "int8",
+      format: "example.linear.v1",
+      artifacts: ["tokenizer.json", "model.json"],
+      configuration: { precision: "int8" },
+    },
+    components: { prompts: ["prompt.md"], toolSchemas: ["tools.json"] },
+    candidate: { credentials: { kind: "none" } },
+  };
+  const parsed = parseReleaseManifest(base);
+  assert.equal(parsed.schemaVersion, "agentci.release.v2");
+  assert.equal(parsed.model.kind, "local");
+  if (parsed.model.kind === "local") {
+    assert.deepEqual(parsed.model.artifacts, ["model.json", "tokenizer.json"]);
+  }
+
+  assert.throws(
+    () => parseReleaseManifest({ ...base, schemaVersion: "agentci.release.v1" }),
+    /requires agentci\.release\.v2/,
+  );
+  assert.throws(
+    () =>
+      parseReleaseManifest({
+        ...base,
+        model: { ...base.model, artifacts: ["model.json", "model.json"] },
+      }),
+    /must not contain duplicates/,
+  );
+  assert.throws(
+    () =>
+      parseReleaseManifest({
+        ...base,
+        model: { ...base.model, artifacts: ["../model.json"] },
+      }),
+    /normalized relative POSIX path/,
+  );
+  assert.throws(
+    () =>
+      parseReleaseManifest({
+        ...base,
+        model: { ...base.model, artifacts: ["candidate.mjs"] },
+    }),
+    /cannot also be the runtime entry/,
+  );
+  assert.throws(
+    () =>
+      parseReleaseManifest({
+        ...base,
+        model: { ...base.model, unsupported: true },
+      }),
+    /model\.unsupported is not supported/,
+  );
+  assert.throws(
+    () =>
+      parseReleaseManifest({
+        ...base,
+        model: {
+          ...base.model,
+          configuration: { precision: undefined },
+        },
+      }),
+    /model\.configuration must be JSON/,
+  );
+  assert.throws(
+    () =>
+      parseReleaseManifest({
+        ...base,
+        candidate: {
+          credentials: {
+            kind: "environment",
+            environment: ["LOCAL_MODEL_KEY"],
+          },
+        },
+      }),
+    /credentials require a declared remote model/,
+  );
+});
+
+test("local model artifact bytes are required and alter release identity", async (context) => {
+  const root = await mkdtemp(join(tmpdir(), "outcomegate-local-model-test-"));
+  context.after(async () => rm(root, { recursive: true, force: true }));
+  await mkdir(join(root, "bundle"));
+  await writeFile(join(root, "bundle/candidate.mjs"), "", "utf8");
+  await writeFile(join(root, "bundle/prompt.md"), "prompt", "utf8");
+  await writeFile(join(root, "bundle/tools.json"), "{}", "utf8");
+  await writeFile(join(root, "bundle/model.json"), '{"weight":1}', "utf8");
+  const manifest = {
+    schemaVersion: "agentci.release.v2",
+    name: "local-model-artifact",
+    runtime: { kind: "node-jsonl", protocolVersion: 1, entry: "candidate.mjs" },
+    bundle: { root: "bundle" },
+    model: {
+      kind: "local",
+      identifier: "local-linear-model",
+      revision: "fp32",
+      format: "example.linear.v1",
+      artifacts: ["model.json"],
+    },
+    components: { prompts: ["prompt.md"], toolSchemas: ["tools.json"] },
+    candidate: { credentials: { kind: "none" } },
+  };
+  const manifestPath = join(root, "release.json");
+  await writeFile(manifestPath, JSON.stringify(manifest), "utf8");
+
+  const first = await loadReleaseManifest(manifestPath);
+  assert.ok(first.identity.files.some((file) => file.path === "model.json"));
+  await writeFile(join(root, "bundle/model.json"), '{"weight":2}', "utf8");
+  const second = await loadReleaseManifest(manifestPath);
+  assert.equal(
+    first.identity.modelDeclarationDigest,
+    second.identity.modelDeclarationDigest,
+  );
+  assert.notEqual(first.identity.bundleDigest, second.identity.bundleDigest);
+  assert.notEqual(first.identity.releaseDigest, second.identity.releaseDigest);
+
+  await writeFile(
+    manifestPath,
+    JSON.stringify({
+      ...manifest,
+      model: {
+        ...manifest.model,
+        revision: "int8",
+        configuration: { precision: "int8" },
+      },
+    }),
+    "utf8",
+  );
+  const changedDeclaration = await loadReleaseManifest(manifestPath);
+  assert.equal(second.identity.bundleDigest, changedDeclaration.identity.bundleDigest);
+  assert.notEqual(
+    second.identity.modelDeclarationDigest,
+    changedDeclaration.identity.modelDeclarationDigest,
+  );
+  assert.notEqual(
+    second.identity.releaseDigest,
+    changedDeclaration.identity.releaseDigest,
+  );
+
+  const materialized = await materializeRelease(second);
+  try {
+    await writeFile(join(materialized.root, "model.json"), '{"weight":3}', "utf8");
+    assert.ok((await verifyMaterializedRelease(materialized, second)).length > 0);
+  } finally {
+    await cleanupMaterializedRelease(materialized);
+  }
+
+  await writeFile(
+    manifestPath,
+    JSON.stringify({
+      ...manifest,
+      model: { ...manifest.model, artifacts: ["missing-model.json"] },
+    }),
+    "utf8",
+  );
+  await assert.rejects(
+    loadReleaseManifest(manifestPath),
+    /manifest references files absent from the bundle/,
+  );
+});
+
 test("rejects path traversal before reading a bundle", () => {
   assert.throws(
     () =>

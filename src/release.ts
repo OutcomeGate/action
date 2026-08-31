@@ -137,7 +137,40 @@ function parseModel(
         : {}),
     };
   }
-  issues.push("model.kind must be 'none' or 'remote'");
+  if (value.kind === "local") {
+    unknownKeys(
+      value,
+      ["kind", "identifier", "revision", "format", "artifacts", "configuration"],
+      "model",
+      issues,
+    );
+    const identifier = readString(value.identifier, "model.identifier", issues);
+    const revision = readString(value.revision, "model.revision", issues);
+    const format = readString(value.format, "model.format", issues);
+    const artifacts = parseStringPaths(value.artifacts, "model.artifacts", issues);
+    if (value.configuration !== undefined && !isJsonValue(value.configuration)) {
+      issues.push("model.configuration must be JSON");
+    }
+    if (
+      identifier === undefined ||
+      revision === undefined ||
+      format === undefined ||
+      artifacts.length === 0
+    ) {
+      return undefined;
+    }
+    return {
+      kind: "local",
+      identifier,
+      revision,
+      format,
+      artifacts,
+      ...(value.configuration !== undefined && isJsonValue(value.configuration)
+        ? { configuration: value.configuration }
+        : {}),
+    };
+  }
+  issues.push("model.kind must be 'none', 'remote', or 'local'");
   return undefined;
 }
 
@@ -202,6 +235,9 @@ export function parseReleaseManifest(value: unknown): ReleaseManifestSpec {
   }
 
   const model = parseModel(value.model, issues);
+  if (model?.kind === "local" && schemaVersion !== "agentci.release.v2") {
+    issues.push("model.kind 'local' requires agentci.release.v2");
+  }
   let candidate:
     | Extract<ReleaseManifestSpec, { schemaVersion: "agentci.release.v2" }>["candidate"]
     | undefined;
@@ -251,6 +287,19 @@ export function parseReleaseManifest(value: unknown): ReleaseManifestSpec {
   ) {
     issues.push("runtime.entry cannot also be classified as a prompt or tool schema");
   }
+  if (model?.kind === "local" && runtime !== undefined && components !== undefined) {
+    const componentPaths = new Set([
+      runtime.entry,
+      ...components.prompts,
+      ...components.toolSchemas,
+    ]);
+    const overlaps = model.artifacts.filter((path) => componentPaths.has(path));
+    if (overlaps.length > 0) {
+      issues.push(
+        `model artifact paths cannot also be the runtime entry, prompts, or tool schemas: ${overlaps.join(", ")}`,
+      );
+    }
+  }
 
   if (
     issues.length > 0 ||
@@ -268,7 +317,7 @@ export function parseReleaseManifest(value: unknown): ReleaseManifestSpec {
     candidate !== undefined
   ) {
     if (
-      model.kind === "none" &&
+      model.kind !== "remote" &&
       candidate.credentials.kind === "environment"
     ) {
       throw new ReleaseValidationError([
@@ -284,6 +333,11 @@ export function parseReleaseManifest(value: unknown): ReleaseManifestSpec {
       components,
       candidate,
     };
+  }
+  if (model.kind === "local") {
+    throw new ReleaseValidationError([
+      "model.kind 'local' requires agentci.release.v2",
+    ]);
   }
   return {
     schemaVersion: "agentci.release.v1",
@@ -378,6 +432,7 @@ export async function loadReleaseManifest(
     manifest.runtime.entry,
     ...manifest.components.prompts,
     ...manifest.components.toolSchemas,
+    ...(manifest.model.kind === "local" ? manifest.model.artifacts : []),
   ];
   const missing = requiredPaths.filter((requiredPath) => !byPath.has(requiredPath));
   if (missing.length > 0) {
@@ -396,6 +451,7 @@ export async function loadReleaseManifest(
   const classified = new Set([
     ...manifest.components.prompts,
     ...manifest.components.toolSchemas,
+    ...(manifest.model.kind === "local" ? manifest.model.artifacts : []),
   ]);
   const harness = files.filter((file) => !classified.has(file.path));
   const manifestVersion = manifest.schemaVersion === "agentci.release.v2" ? 2 : 1;

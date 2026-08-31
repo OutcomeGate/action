@@ -137,13 +137,22 @@ export interface RemoteModelSpec {
   configuration?: JsonValue;
 }
 
-export type ReleaseModelSpec = NoModelSpec | RemoteModelSpec;
+export interface LocalModelSpec {
+  kind: "local";
+  identifier: string;
+  revision: string;
+  format: string;
+  artifacts: string[];
+  configuration?: JsonValue;
+}
+
+export type ReleaseModelSpec = NoModelSpec | RemoteModelSpec | LocalModelSpec;
 
 export type CandidateCredentialPolicySpec =
   | { kind: "none" }
   | { kind: "environment"; environment: readonly string[] };
 
-interface ReleaseManifestCommon {
+interface ReleaseManifestCommon<Model extends ReleaseModelSpec> {
   name: string;
   runtime: {
     kind: "node-jsonl";
@@ -153,18 +162,20 @@ interface ReleaseManifestCommon {
   bundle: {
     root: string;
   };
-  model: ReleaseModelSpec;
+  model: Model;
   components: {
     prompts: string[];
     toolSchemas: string[];
   };
 }
 
-export interface ReleaseManifestSpecV1 extends ReleaseManifestCommon {
+export interface ReleaseManifestSpecV1
+  extends ReleaseManifestCommon<NoModelSpec | RemoteModelSpec> {
   schemaVersion: "agentci.release.v1";
 }
 
-export interface ReleaseManifestSpecV2 extends ReleaseManifestCommon {
+export interface ReleaseManifestSpecV2
+  extends ReleaseManifestCommon<ReleaseModelSpec> {
   schemaVersion: "agentci.release.v2";
   candidate: {
     credentials: CandidateCredentialPolicySpec;

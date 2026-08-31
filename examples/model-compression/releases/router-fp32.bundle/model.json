@@ -1,0 +1,11 @@
+{
+  "schemaVersion": "outcomegate.linear-router.v1",
+  "encoding": "float32",
+  "bias": -0.01,
+  "weights": {
+    "billing": 0.29,
+    "duplicate": -0.8,
+    "refund": -0.24,
+    "urgent": 1.4
+  }
+}

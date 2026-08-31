@@ -166,6 +166,13 @@ rollback.
 - Remote cancellation and rollback cannot be proven by the evaluator.
 - Passing demonstrates the declared synthetic scenarios, not correctness for
   undeclared behavior or production traffic.
+- A release-v2 local-model declaration binds captured artifact paths, bytes,
+  modes, and metadata into release evidence. It does not prove that candidate
+  code used those artifacts, that a format or optimization claim is truthful,
+  or that undeclared accelerator, kernel, driver, and hardware state was fixed.
+- Local model artifacts remain subject to the 20 MiB closed-bundle limit. Larger
+  model formats need a future streamed, content-addressed design rather than an
+  expanded in-memory trust boundary.
 
 For the supported workflow, start with [Quickstart](QUICKSTART.md). For a fixed
 diagnostic sequence, see [Troubleshooting](TROUBLESHOOTING.md).
