@@ -92,7 +92,7 @@ test("init creates the default credential-free starter from a fixed template", a
   assert.match(workflow, /Accepted Apache-2\.0 Developer Preview runtime/);
   assert.match(
     workflow,
-    /OutcomeGate\/agent-ci-action@65c05affea57490e83959d6eeb4cbee5f6763935/,
+    /OutcomeGate\/agent-ci-action@6bef6fecb4daa4a03c4fe5105776f9ce9351266a/,
   );
 });
 
