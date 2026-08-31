@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://agent-ci.invalid/schemas/publication.v1.json",
-  "title": "Agent CI sanitized publication report v1",
+  "title": "OutcomeGate sanitized publication report v1",
   "type": "object",
   "required": [
     "schemaVersion",

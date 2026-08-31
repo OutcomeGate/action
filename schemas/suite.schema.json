@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://agent-ci.invalid/schemas/suite.v1.json",
   "$comment": "Informative MVP sketch. src/suite.ts plus fixture-aware validation in src/fixtures/refunds.ts are authoritative.",
-  "title": "Agent CI suite v1",
+  "title": "OutcomeGate suite v1",
   "type": "object",
   "required": ["schemaVersion", "name", "version", "fixture", "gate", "scenarios"],
   "properties": {

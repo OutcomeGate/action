@@ -1,9 +1,9 @@
 import { lstat, mkdir, readFile, realpath, writeFile, } from "node:fs/promises";
 import { dirname, isAbsolute, relative, resolve, sep, } from "node:path";
 import { fileURLToPath } from "node:url";
-export const DEFAULT_STARTER_DIRECTORY = "agentci-starter";
+export const DEFAULT_STARTER_DIRECTORY = "outcomegate-starter";
 const STARTER_FILES = Object.freeze([
-    [".github/workflows/agent-ci.yml", ".github/workflows/agent-ci.yml"],
+    [".github/workflows/outcomegate.yml", ".github/workflows/outcomegate.yml"],
     ["gitignore", ".gitignore"],
     ["README.md", "README.md"],
     ["agentci/adapter.bundle/adapter.mjs", "agentci/adapter.bundle/adapter.mjs"],

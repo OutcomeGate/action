@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://agent-ci.invalid/schemas/adapter-manifest.v1.json",
   "$comment": "Informative contract sketch. src/adapter-manifest.ts is authoritative and adds normalization, HTTPS URL, process-control environment-name, filesystem, symlink, size, and stable-capture checks that JSON Schema cannot fully express.",
-  "title": "Agent CI adapter manifest v1",
+  "title": "OutcomeGate adapter manifest v1",
   "type": "object",
   "required": [
     "schemaVersion",

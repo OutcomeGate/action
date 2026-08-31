@@ -1,6 +1,6 @@
-# Agent CI v0.3 quickstart
+# OutcomeGate v0.3 quickstart
 
-Agent CI v0.3 runs declared, synthetic scenarios against a structured,
+OutcomeGate v0.3 runs declared, synthetic scenarios against a structured,
 tool-using Node.js candidate. The supported GitHub Action path is deliberately
 credential-free: the release, adapter, suite, and workflow must not require or
 receive secrets.
@@ -103,7 +103,7 @@ Commit the suite, release bundle, adapter bundle, and their manifests to the
 repository being checked. Then add a workflow like this:
 
 ```yaml
-name: agent-ci
+name: OutcomeGate
 
 on:
   pull_request:
@@ -121,7 +121,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: OutcomeGate/agent-ci-action@6bef6fecb4daa4a03c4fe5105776f9ce9351266a
+      - uses: OutcomeGate/action@6bef6fecb4daa4a03c4fe5105776f9ce9351266a
         with:
           suite: examples/counter/suite.json
           manifest: examples/counter/releases/agent.release.json
@@ -146,19 +146,19 @@ input.
 
 ## 5. Generate an independent starter
 
-Keep the generated project outside the Agent CI source checkout. Set
-`AGENTCI_CLI` to the absolute path of the built CLI, then run:
+Keep the generated project outside the OutcomeGate source checkout. Set
+`OUTCOMEGATE_CLI` to the absolute path of the built CLI, then run:
 
 ```bash
-AGENTCI_CLI=/absolute/path/to/agent-ci-action/dist/src/cli.js
+OUTCOMEGATE_CLI=/absolute/path/to/action/dist/src/cli.js
 cd /path/to/a/scratch-parent
-node "$AGENTCI_CLI" init agentci-starter
-cd agentci-starter
-node "$AGENTCI_CLI" validate-release --manifest agentci/release.manifest.json
-node "$AGENTCI_CLI" validate-adapter --manifest agentci/adapter.manifest.json
-node "$AGENTCI_CLI" adapter-check --adapter-manifest agentci/adapter.manifest.json
-node "$AGENTCI_CLI" validate --suite agentci/suite.json --adapter-manifest agentci/adapter.manifest.json
-node "$AGENTCI_CLI" check \
+node "$OUTCOMEGATE_CLI" init outcomegate-starter
+cd outcomegate-starter
+node "$OUTCOMEGATE_CLI" validate-release --manifest agentci/release.manifest.json
+node "$OUTCOMEGATE_CLI" validate-adapter --manifest agentci/adapter.manifest.json
+node "$OUTCOMEGATE_CLI" adapter-check --adapter-manifest agentci/adapter.manifest.json
+node "$OUTCOMEGATE_CLI" validate --suite agentci/suite.json --adapter-manifest agentci/adapter.manifest.json
+node "$OUTCOMEGATE_CLI" check \
   --suite agentci/suite.json \
   --manifest agentci/release.manifest.json \
   --adapter-manifest agentci/adapter.manifest.json \
@@ -171,7 +171,7 @@ manifest, and workflow. Its workflow pins the accepted Developer Preview
 runtime SHA; review it before enabling the workflow.
 
 After npm publication, or when the package is linked locally, the equivalent
-commands can use `agentci` directly instead of `node "$AGENTCI_CLI"`.
+commands can use `outcomegate` directly instead of `node "$OUTCOMEGATE_CLI"`.
 
 ## 6. Adapt the counter example
 

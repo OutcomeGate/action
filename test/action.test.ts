@@ -23,7 +23,7 @@ const counterExample = join(projectRoot, "examples/counter");
 
 async function actionGateScript(): Promise<string> {
   const source = await readFile(actionPath, "utf8");
-  const stepMarker = "    - name: Run Agent CI gate\n";
+  const stepMarker = "    - name: Run OutcomeGate gate\n";
   const stepStart = source.indexOf(stepMarker);
   assert.notEqual(stepStart, -1, "action gate step is missing");
   const runMarker = "      run: |\n";
@@ -68,7 +68,7 @@ async function assertCredentialFreePreflightPrecedesRuntime(): Promise<void> {
     "    - name: Enforce the credential-free Action boundary\n",
   );
   const setup = source.indexOf("    - name: Set up Node.js\n");
-  const gate = source.indexOf("    - name: Run Agent CI gate\n");
+  const gate = source.indexOf("    - name: Run OutcomeGate gate\n");
 
   assert.notEqual(preflight, -1, "credential-free Action preflight is missing");
   assert.notEqual(setup, -1, "Node.js setup step is missing");
@@ -281,7 +281,7 @@ test("the source Action gate preserves 0/1/2 and fails closed on publication", a
   assert.match(blockingSummary, /Decision: BLOCK/);
   assert.match(
     `${block.stdout}\n${block.stderr}`,
-    /Agent CI block%3A scenario 1/,
+    /OutcomeGate block%3A scenario 1/,
   );
   assertCanariesAbsent(
     [block.stdout, block.stderr, blockingSummary, blockingJson, blockingMarkdown],
@@ -486,7 +486,7 @@ test("the source Action rejects a credential input without emitting its fixed-di
   await writeFile(join(workspace, ".agentci/report.json"), "stale", "utf8");
   await writeFile(join(workspace, ".agentci/report.md"), "stale", "utf8");
   const fixedDiagnostic =
-    "::warning::Agent CI could not append Markdown evidence to the job summary.";
+    "::warning::OutcomeGate could not append Markdown evidence to the job summary.";
 
   const result = await runGate({
     script,

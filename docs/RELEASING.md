@@ -1,8 +1,9 @@
 # Releasing
 
-Apache-2.0 is selected for the Agent CI Developer Preview. The candidate remains
-private until the remaining technical and publication controls pass. Do not
-make the repository public merely because one automated check passes.
+Apache-2.0 is selected for the OutcomeGate Developer Preview. The npm package
+remains private until a separate publication decision. Repository visibility is
+a controlled release decision; do not change it merely because one automated
+check passes.
 
 ## Selected release posture
 
@@ -44,7 +45,7 @@ GitHub prerelease tag. npm publication is a separate future decision.
 12. Re-run the release, history, and package audits. Change repository
     visibility only after explicit approval.
 13. Before advertising the repository, configure a branch ruleset that requires
-    every `verify` matrix job and `action-smoke`, and blocks force pushes and
+    `verify (24)` and `action-smoke`, and blocks force pushes and
     branch deletion. Enable private vulnerability reporting, confirm read-only
     workflow permissions, require full-SHA Action pins, and retain logs for no
     more than seven days. If a GitHub setting is unavailable on the
@@ -61,4 +62,4 @@ The package remains `private: true` until its name, registry ownership, and
 release channel are approved. The Developer Preview release gate enforces that
 lock. Removing it is an npm publication decision, not a GitHub source-release
 step. Before publishing, install the generated tarball into an empty temporary
-project and run both `agentci init` and the generated starter check.
+project and run both `outcomegate init` and the generated starter check.

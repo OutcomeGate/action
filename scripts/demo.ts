@@ -62,7 +62,7 @@ await writeTextFile(
 
 process.stdout.write(
   [
-    "Agent CI deterministic demo",
+    "OutcomeGate deterministic demo",
     "",
     renderConsoleSummary(baseline),
     "",

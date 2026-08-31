@@ -12,7 +12,7 @@ function assertStarterTarget(context) {
     !isRecord(context.target) ||
     context.target.kind !== "synthetic" ||
     !isRecord(context.target.configuration) ||
-    context.target.configuration.namespace !== "agentci-starter"
+    context.target.configuration.namespace !== "outcomegate-starter"
   ) {
     throw new Error("starter adapter received the wrong declared target");
   }

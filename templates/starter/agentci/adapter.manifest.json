@@ -15,7 +15,7 @@
   "target": {
     "kind": "synthetic",
     "reason": "Self-contained starter environment.",
-    "configuration": { "namespace": "agentci-starter" }
+    "configuration": { "namespace": "outcomegate-starter" }
   },
   "credentials": { "environment": [] }
 }

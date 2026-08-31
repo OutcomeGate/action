@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-The Agent CI Developer Preview candidate is pre-1.0. Security fixes are made
+The OutcomeGate Developer Preview candidate is pre-1.0. Security fixes are made
 against the current default branch and, when applicable, the accepted candidate
 SHA. Older commits and forks are not maintained with security backports.
 
@@ -16,7 +16,7 @@ SHA. Older commits and forks are not maintained with security backports.
 After publication, use GitHub's **Security** tab and select **Report a
 vulnerability**:
 
-<https://github.com/OutcomeGate/agent-ci-action/security/advisories/new>
+<https://github.com/OutcomeGate/action/security/advisories/new>
 
 Do not put vulnerability details in a public issue. If private vulnerability
 reporting is unavailable, open a public issue that only asks the maintainer to
@@ -39,7 +39,7 @@ coordinated.
 
 The GitHub Action is intentionally credential-free. Do not attach secrets to
 its step, job, fixtures, manifests, reports, or logs. Candidate, adapter, and
-evaluator processes run as the same operating-system user; Agent CI is not a
+evaluator processes run as the same operating-system user; OutcomeGate is not a
 hostile-code sandbox. Static secret scanning is defense in depth, not a data
 loss prevention guarantee.
 

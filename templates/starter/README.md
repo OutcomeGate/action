@@ -1,30 +1,30 @@
-# Agent CI starter
+# OutcomeGate starter
 
-This is a deterministic, credential-free starter for testing the Agent CI
+This is a deterministic, credential-free starter for testing the OutcomeGate
 release gate. It models one synthetic tool, one candidate, and one passing
 scenario. No network access, production data, or credentials are required.
 
 ## Run locally
 
-Until the package is published, point `AGENTCI_CLI` at the absolute path of a
-built Agent CI source checkout:
+Until the package is published, point `OUTCOMEGATE_CLI` at the absolute path of a
+built OutcomeGate source checkout:
 
 ```sh
-AGENTCI_CLI=/absolute/path/to/agent-ci-action/dist/src/cli.js
-node "$AGENTCI_CLI" validate-release --manifest agentci/release.manifest.json
-node "$AGENTCI_CLI" validate-adapter --manifest agentci/adapter.manifest.json
-node "$AGENTCI_CLI" adapter-check --adapter-manifest agentci/adapter.manifest.json
-node "$AGENTCI_CLI" validate --suite agentci/suite.json --adapter-manifest agentci/adapter.manifest.json
-node "$AGENTCI_CLI" check \
+OUTCOMEGATE_CLI=/absolute/path/to/action/dist/src/cli.js
+node "$OUTCOMEGATE_CLI" validate-release --manifest agentci/release.manifest.json
+node "$OUTCOMEGATE_CLI" validate-adapter --manifest agentci/adapter.manifest.json
+node "$OUTCOMEGATE_CLI" adapter-check --adapter-manifest agentci/adapter.manifest.json
+node "$OUTCOMEGATE_CLI" validate --suite agentci/suite.json --adapter-manifest agentci/adapter.manifest.json
+node "$OUTCOMEGATE_CLI" check \
   --suite agentci/suite.json \
   --manifest agentci/release.manifest.json \
   --adapter-manifest agentci/adapter.manifest.json \
   --require-explicit-candidate-policy
 ```
 
-The final command should report `PASS starter-agent-v1`. If `agentci` is
+The final command should report `PASS starter-agent-v1`. If `outcomegate` is
 installed or linked on your path, use it directly instead of
-`node "$AGENTCI_CLI"`.
+`node "$OUTCOMEGATE_CLI"`.
 
 ## Adapt it
 

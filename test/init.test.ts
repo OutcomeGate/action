@@ -83,7 +83,7 @@ test("init creates the default credential-free starter from a fixed template", a
   assert.deepEqual(adapter.credentials.environment, []);
 
   const workflow = await readFile(
-    join(target, ".github/workflows/agent-ci.yml"),
+    join(target, ".github/workflows/outcomegate.yml"),
     "utf8",
   );
   const actionRefs = [...workflow.matchAll(/uses: [^\s@]+@([0-9a-f]{40})/g)];
@@ -92,7 +92,7 @@ test("init creates the default credential-free starter from a fixed template", a
   assert.match(workflow, /Accepted Apache-2\.0 Developer Preview runtime/);
   assert.match(
     workflow,
-    /OutcomeGate\/agent-ci-action@6bef6fecb4daa4a03c4fe5105776f9ce9351266a/,
+    /OutcomeGate\/action@6bef6fecb4daa4a03c4fe5105776f9ce9351266a/,
   );
 });
 
@@ -154,7 +154,7 @@ test("the CLI-generated project validates and passes end to end", async (context
 
   const initialized = await runCli(root, ["init", "generated"]);
   assert.equal(initialized.code, 0, `${initialized.stdout}\n${initialized.stderr}`);
-  assert.match(initialized.stdout, /created Agent CI starter at generated/);
+  assert.match(initialized.stdout, /created OutcomeGate starter at generated/);
   assert.match(initialized.stdout, /Next:/);
   assert.match(initialized.stdout, /cd 'generated'/);
   assert.match(initialized.stdout, /Follow README\.md/);
@@ -205,7 +205,7 @@ test("the CLI-generated project validates and passes end to end", async (context
     assert.equal(
       result.code,
       0,
-      `agentci ${command.join(" ")} failed\n${result.stdout}\n${result.stderr}`,
+      `outcomegate ${command.join(" ")} failed\n${result.stdout}\n${result.stderr}`,
     );
   }
 

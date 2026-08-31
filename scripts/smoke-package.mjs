@@ -76,7 +76,7 @@ try {
     consumer,
     "node_modules",
     ".bin",
-    process.platform === "win32" ? "agentci.cmd" : "agentci",
+    process.platform === "win32" ? "outcomegate.cmd" : "outcomegate",
   );
   const runCli = (args, cwd) =>
     process.platform === "win32"
@@ -84,8 +84,8 @@ try {
       : run(installedCli, args, cwd);
 
   const help = runCli(["--help"], consumer);
-  if (!/^Usage:/m.test(help) || !/agentci check/u.test(help)) {
-    throw new Error("installed package binary did not return Agent CI help");
+  if (!/^Usage:/m.test(help) || !/outcomegate check/u.test(help)) {
+    throw new Error("installed package binary did not return OutcomeGate help");
   }
   run(
     process.execPath,

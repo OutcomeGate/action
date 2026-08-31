@@ -1,6 +1,6 @@
 # Manifest-backed adapter API v2
 
-An Agent CI adapter is a synthetic state machine and tool boundary. It defines
+An OutcomeGate adapter is a synthetic state machine and tool boundary. It defines
 which tools a candidate may call, validates the suite's state contract, creates
 a fresh environment for each scenario, and returns detached JSON snapshots for
 evidence.
@@ -119,7 +119,7 @@ failure.
 ### `validateStatePointer(pointer, initialState, context)`
 
 Return `undefined` when a state JSON Pointer is meaningful for this adapter and
-initial state. Otherwise return one non-empty issue string. Agent CI invokes
+initial state. Otherwise return one non-empty issue string. OutcomeGate invokes
 this for every `source: "state"` JSON-pointer assertion.
 
 The evaluator independently rejects suite faults and event assertions that
@@ -227,7 +227,7 @@ idempotency and reconciliation controls.
 ## Transition evidence and injected faults
 
 For each candidate call, the host snapshots before and after invoking `call`.
-Agent CI records the state hashes, tool outcome, and whether the state changed.
+OutcomeGate records the state hashes, tool outcome, and whether the state changed.
 A `before` suite fault skips the adapter call and returns the declared error. An
 `after` fault invokes the adapter, captures its resulting state, and then
 returns the declared error instead of the successful content. This models an

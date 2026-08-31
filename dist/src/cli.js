@@ -14,17 +14,17 @@ import { runSuiteWithEvidenceGuard, runSuiteWithSanitizedPublication, } from "./
 import { assertSecretScanClean, scanTextForSecrets, } from "./secret-scan.js";
 import { parseStrictJson } from "./strict-json.js";
 import { loadSuite } from "./suite.js";
-const HELP = `Agent CI — local release assurance for structured agents
+const HELP = `OutcomeGate — local release assurance for structured agents
 
 Usage:
-  agentci init [directory]
-  agentci check --suite <suite.json> --manifest <release.json> [options]
-  agentci check --suite <suite.json> --candidate <candidate.js> --release <name>
-  agentci compare --baseline <report.json> --candidate <report.json>
-  agentci validate --suite <suite.json> [--adapter-manifest <adapter.json>]
-  agentci validate-release --manifest <release.json>
-  agentci validate-adapter --manifest <adapter.json>
-  agentci adapter-check (--adapter-manifest <adapter.json> | --adapter <adapter.js>)
+  outcomegate init [directory]
+  outcomegate check --suite <suite.json> --manifest <release.json> [options]
+  outcomegate check --suite <suite.json> --candidate <candidate.js> --release <name>
+  outcomegate compare --baseline <report.json> --candidate <report.json>
+  outcomegate validate --suite <suite.json> [--adapter-manifest <adapter.json>]
+  outcomegate validate-release --manifest <release.json>
+  outcomegate validate-adapter --manifest <adapter.json>
+  outcomegate adapter-check (--adapter-manifest <adapter.json> | --adapter <adapter.js>)
 
 check options:
   --manifest <path>    Declared release manifest (recommended path)
@@ -100,7 +100,7 @@ async function readReport(path) {
     const raw = await readFile(resolve(path), "utf8");
     const value = parseStrictJson(raw);
     if (!isReleaseReport(value)) {
-        throw new Error(`${path} is not an Agent CI v3 report`);
+        throw new Error(`${path} is not an agentci.report.v3 report`);
     }
     if (!verifyEvidenceDigest(value)) {
         throw new Error(`${path} evidence digest does not match its contents`);
@@ -122,7 +122,7 @@ function renderGithubAnnotations(report, assertSemanticSafe) {
         if (scenario.verdict === "pass") {
             return [];
         }
-        const title = `Agent CI ${scenario.verdict}: scenario ${index + 1}`;
+        const title = `OutcomeGate ${scenario.verdict}: scenario ${index + 1}`;
         const message = "Sanitized annotation: inspect protected local evidence for details.";
         // GitHub decodes workflow-command escapes before displaying these
         // fields, so guard both semantic values as well as the encoded bytes.
@@ -200,11 +200,11 @@ async function main() {
         const target = await initializeStarter(parsed.positionals[1]);
         const displayTarget = relative(process.cwd(), target);
         writeScannedStdout([
-            `created Agent CI starter at ${displayTarget}`,
+            `created OutcomeGate starter at ${displayTarget}`,
             "",
             "Next:",
             `  cd ${shellQuote(displayTarget)}`,
-            "  Follow README.md using this CLI path or an installed agentci command.",
+            "  Follow README.md using this CLI path or an installed outcomegate command.",
             "",
             "The generated GitHub workflow pins the accepted Developer Preview runtime; review that full commit SHA before enabling it.",
             "",

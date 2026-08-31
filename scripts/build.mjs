@@ -14,7 +14,7 @@ if (outputFromRoot !== "dist") {
 const packageJson = JSON.parse(
   await readFile(resolve(projectRoot, "package.json"), "utf8"),
 );
-if (packageJson.name !== "agent-ci-mvp") {
+if (packageJson.name !== "@outcomegate/cli") {
   throw new Error("refusing to build from an unexpected package root");
 }
 

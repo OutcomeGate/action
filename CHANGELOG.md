@@ -1,12 +1,13 @@
 # Changelog
 
-All notable changes to Agent CI are recorded here. The first public release has
-not occurred; this entry describes the Apache-2.0 Developer Preview candidate
-while its final publication controls are being validated.
+All notable changes to OutcomeGate are recorded here. This entry describes the
+Apache-2.0 Developer Preview; the npm package remains intentionally unpublished.
 
-## 0.3.0 Developer Preview candidate — unreleased
+## 0.3.0 Developer Preview
 
-- Add a safe `agentci init` starter workflow.
+- Adopt the OutcomeGate name, `@outcomegate/cli` package metadata, and sole
+  `outcomegate` command while retaining the v0.3 `agentci.*` protocol identifiers.
+- Add a safe `outcomegate init` starter workflow.
 - Add public protocol, adapter, suite, security, and troubleshooting guides.
 - Add a committed prebuilt runtime for network-minimal Action execution.
 - Add public-history, documentation-link, package-boundary, and release checks.

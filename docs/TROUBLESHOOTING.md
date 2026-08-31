@@ -1,4 +1,4 @@
-# Troubleshooting Agent CI v0.3
+# Troubleshooting OutcomeGate v0.3
 
 Start locally, without `--github`, so configuration errors are rendered when
 they pass the static secret scanner. The GitHub Action intentionally replaces

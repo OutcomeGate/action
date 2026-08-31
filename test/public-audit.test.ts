@@ -166,6 +166,42 @@ test("public history audit passes a clean isolated repository", async (context) 
   assert.match(result.stdout, /Public history audit passed/);
 });
 
+test("public history audit permits the renamed starter workflow only in history", async (context) => {
+  const { root, audit } = await initializeRepository(context, "history");
+  const legacy = join(
+    root,
+    "templates/starter/.github/workflows/agent-ci.yml",
+  );
+  const current = join(
+    root,
+    "templates/starter/.github/workflows/outcomegate.yml",
+  );
+  await mkdir(dirname(legacy), { recursive: true });
+  await writeFile(legacy, "name: Legacy synthetic workflow\n", "utf8");
+  git(root, ["add", "-A"]);
+  git(root, ["commit", "-m", "Add legacy starter workflow"]);
+  await unlink(legacy);
+  await writeFile(current, "name: OutcomeGate synthetic workflow\n", "utf8");
+  git(root, ["add", "-A"]);
+  git(root, ["commit", "-m", "Rename starter workflow"]);
+
+  const result = runAudit(root, audit);
+  assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`);
+  assert.match(result.stdout, /Public history audit passed/);
+});
+
+test("public history audit rejects the legacy starter workflow in the current tree", async (context) => {
+  const { root, audit } = await initializeRepository(context, "history");
+  const legacy = join(
+    root,
+    "templates/starter/.github/workflows/agent-ci.yml",
+  );
+  await mkdir(dirname(legacy), { recursive: true });
+  await writeFile(legacy, "name: Legacy synthetic workflow\n", "utf8");
+
+  assertSuppressedFailure(runAudit(root, audit), ["agent-ci.yml"]);
+});
+
 test("public history audit rejects forbidden historical paths after deletion", async (context) => {
   const { root, audit } = await initializeRepository(context, "history");
   const path = join(root, "src/innocent.pdf");

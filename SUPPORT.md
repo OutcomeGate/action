@@ -1,6 +1,6 @@
 # Support
 
-Agent CI is an Apache-2.0-licensed, pre-1.0 Developer Preview candidate. It is
+OutcomeGate is an Apache-2.0-licensed, pre-1.0 Developer Preview candidate. It is
 maintained on a best-effort basis, with no response-time or compatibility SLA.
 
 ## Where to ask
@@ -15,7 +15,7 @@ issues, and run `npm run verify` when possible.
 
 ## What to include
 
-Provide the exact Agent CI commit SHA, Node.js version, execution environment,
+Provide the exact OutcomeGate commit SHA, Node.js version, execution environment,
 exit code or outcome, and a minimal synthetic reproduction. Reduce logs to the
 smallest relevant excerpt and check them again for private information before
 posting.

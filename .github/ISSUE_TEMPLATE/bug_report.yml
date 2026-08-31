@@ -7,7 +7,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for helping improve Agent CI. Do not include credentials, customer data, real conversations, private evidence, or unsanitized logs. Report vulnerabilities through the Security tab instead.
+        Thanks for helping improve OutcomeGate. Do not include credentials, customer data, real conversations, private evidence, or unsanitized logs. Report vulnerabilities through the Security tab instead.
   - type: checkboxes
     id: preflight
     attributes:
@@ -22,7 +22,7 @@ body:
   - type: input
     id: commit
     attributes:
-      label: Agent CI commit SHA
+      label: OutcomeGate commit SHA
       description: Provide the full commit SHA that exhibits the problem.
       placeholder: 40-character commit SHA
     validations:

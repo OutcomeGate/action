@@ -1,6 +1,6 @@
 {
   "schemaVersion": "agentci.suite.v1",
-  "name": "starter-agent-ci-release",
+  "name": "starter-outcomegate-release",
   "version": "1.0.0",
   "fixture": "starter.counter.v1",
   "gate": { "minPassRate": 1 },

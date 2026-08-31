@@ -147,7 +147,7 @@ Equality against candidate `done.output`:
 
 Pointers must be RFC 6901-style strings beginning with `/`; `~0` represents
 `~` and `~1` represents `/`. Array segments are non-negative decimal indexes.
-Equality uses Agent CI's canonical JSON representation. `absent` is not
+Equality uses OutcomeGate's canonical JSON representation. `absent` is not
 allowed for untyped candidate output, but it is allowed for adapter state.
 
 ## Event-count assertions

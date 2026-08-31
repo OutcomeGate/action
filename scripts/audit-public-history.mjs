@@ -66,7 +66,7 @@ const SCRIPT_FILES = new Set([
 ]);
 
 const TEMPLATE_FILES = new Set([
-  "templates/starter/.github/workflows/agent-ci.yml",
+  "templates/starter/.github/workflows/outcomegate.yml",
   "templates/starter/README.md",
   "templates/starter/agentci/adapter.bundle/adapter.mjs",
   "templates/starter/agentci/adapter.manifest.json",
@@ -76,6 +76,12 @@ const TEMPLATE_FILES = new Set([
   "templates/starter/agentci/release.manifest.json",
   "templates/starter/agentci/suite.json",
   "templates/starter/gitignore",
+]);
+
+// A repository rename should not require rewriting otherwise accepted history.
+// These paths are valid only in reachable commits, never in the current tree.
+const LEGACY_HISTORICAL_FILES = new Set([
+  "templates/starter/.github/workflows/agent-ci.yml",
 ]);
 
 const INTERNAL_TOKENS = new Set([
@@ -253,7 +259,7 @@ function hasInternalPathName(path) {
   return false;
 }
 
-function isStructurallyAllowed(path) {
+function isStructurallyAllowed(path, allowLegacyHistorical = false) {
   if (
     path.length === 0 ||
     path.startsWith("/") ||
@@ -270,7 +276,12 @@ function isStructurallyAllowed(path) {
 
   if (components.length === 1) return ROOT_FILES.has(path);
   if (GITHUB_FILES.has(path) || DOCUMENTATION_FILES.has(path) || SCRIPT_FILES.has(path)) return true;
-  if (TEMPLATE_FILES.has(path)) return true;
+  if (
+    TEMPLATE_FILES.has(path) ||
+    (allowLegacyHistorical && LEGACY_HISTORICAL_FILES.has(path))
+  ) {
+    return true;
+  }
   if (components[0] === "dist") {
     return (
       components.length >= 3 &&
@@ -285,8 +296,11 @@ function isStructurallyAllowed(path) {
   );
 }
 
-function pathViolatesPolicy(path) {
-  return !isStructurallyAllowed(path) || hasInternalPathName(path);
+function pathViolatesPolicy(path, allowLegacyHistorical = false) {
+  return (
+    !isStructurallyAllowed(path, allowLegacyHistorical) ||
+    hasInternalPathName(path)
+  );
 }
 
 function messageHasInternalMarker(message) {
@@ -380,7 +394,9 @@ function main() {
     ),
     "current-paths",
   );
-  violations.currentPaths = currentPaths.some(pathViolatesPolicy);
+  violations.currentPaths = currentPaths.some((path) =>
+    pathViolatesPolicy(path),
+  );
 
   const commits = parseCommitList(
     runGit(["rev-list", "--all", "HEAD"], repositoryRoot, "commit-list"),
@@ -403,7 +419,7 @@ function main() {
         (entry) =>
           entry.type !== "blob" ||
           (entry.mode !== "100644" && entry.mode !== "100755") ||
-          pathViolatesPolicy(entry.path),
+          pathViolatesPolicy(entry.path, true),
       )
     ) {
       violations.historicalPaths = true;

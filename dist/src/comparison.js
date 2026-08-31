@@ -15,7 +15,7 @@ export function compareReports(baseline, candidate) {
             candidateEvidenceDigest: candidate.evidenceDigest,
             suiteDigest: candidate.suite.digest,
             verdict: "indeterminate",
-            reasons: ["a report does not satisfy the Agent CI v3 structure"],
+            reasons: ["a report does not satisfy the agentci.report.v3 structure"],
             fixed,
             regressed,
             unchangedPass,

@@ -1,6 +1,6 @@
 # Security model and current limitations
 
-Agent CI v0.3 is a fail-closed release evaluator for synthetic, structured-agent
+OutcomeGate v0.3 is a fail-closed release evaluator for synthetic, structured-agent
 workflows. It captures declared release and adapter bytes, runs scenarios,
 records tool/state evidence, and emits a reduced publication report for CI.
 
@@ -34,7 +34,7 @@ do not use `pull_request_target` to execute pull-request-controlled code.
 
 ### Declared capture
 
-Release and adapter manifests point to closed bundle roots. Agent CI:
+Release and adapter manifests point to closed bundle roots. OutcomeGate:
 
 - rejects unsafe paths, symlinks, hard links, special files, and unstable
   captures;
@@ -74,7 +74,7 @@ service transactional.
 
 ## Decision semantics
 
-Agent CI distinguishes:
+OutcomeGate distinguishes:
 
 - `PASS`: all scenarios and assertions passed with intact evaluator and adapter
   integrity;
@@ -148,7 +148,7 @@ The evaluator sends termination signals and the adapter context exposes an
 abort signal. Termination cannot prove that a remote mutation was cancelled or
 rolled back. Remote adapters need bounded requests, idempotency keys,
 reconciliation, and independent service-side controls. If a deadline expires
-during a transition, Agent CI reports indeterminate rather than claiming
+during a transition, OutcomeGate reports indeterminate rather than claiming
 rollback.
 
 ## Current product limitations

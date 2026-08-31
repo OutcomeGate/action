@@ -1,4 +1,4 @@
-# Contributing to Agent CI
+# Contributing to OutcomeGate
 
 Thank you for helping make deterministic agent release checks easier to adopt.
 Contributions should preserve the credential-free, synthetic-data boundary of

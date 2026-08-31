@@ -1168,7 +1168,7 @@ export function renderMarkdownReport(report: ReleaseReport): string {
           `Adapter target/config SHA-256: ${markdownCode(report.adapter.configurationDigest)}  `,
         ];
   const lines = [
-    `# Agent CI report: ${markdownText(report.release.name)}`,
+    `# OutcomeGate report: ${markdownText(report.release.name)}`,
     "",
     `**Decision: ${report.decision.verdict.toUpperCase()}**`,
     "",
@@ -1234,7 +1234,7 @@ export function renderSanitizedPublicationMarkdown(
       ? report.adapter.moduleDigest
       : report.adapter.adapterDigest;
   const lines = [
-    "# Agent CI sanitized report",
+    "# OutcomeGate sanitized report",
     "",
     `**Decision: ${report.decision.verdict.toUpperCase()}**`,
     "",
@@ -1269,7 +1269,7 @@ export function renderSanitizedConsoleSummary(
     throw new Error("sanitized publication is invalid or its digest does not match");
   }
   return [
-    `${report.decision.verdict.toUpperCase()} sanitized Agent CI publication`,
+    `${report.decision.verdict.toUpperCase()} sanitized OutcomeGate publication`,
     ...report.scenarios.map(
       (scenario) =>
         `${scenario.verdict.toUpperCase().padEnd(13)} scenario ${scenario.scenario} (${scenario.assertionsPassed}/${scenario.assertionsTotal} assertions)`,

@@ -1,8 +1,8 @@
 ---
 type: reference
-title: Agent CI schema status
+title: OutcomeGate schema status
 description: Status and authority boundary for the JSON Schema contract sketches.
-tags: [agent-ci, schemas, contract]
+tags: [outcomegate, schemas, contract]
 timestamp: 2026-08-29T00:00:00-05:00
 ---
 

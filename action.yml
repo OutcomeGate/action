@@ -1,9 +1,9 @@
-name: Agent CI release gate
+name: OutcomeGate release gate
 description: Run a declared agent suite as a fail-closed pull-request check.
 
 inputs:
   suite:
-    description: Repository-relative path to the Agent CI suite.
+    description: Repository-relative path to the OutcomeGate suite.
     required: true
   manifest:
     description: Repository-relative path to the release manifest.
@@ -143,7 +143,7 @@ runs:
       with:
         node-version: 24
 
-    - name: Run Agent CI gate
+    - name: Run OutcomeGate gate
       shell: bash
       env:
         AGENTCI_SUITE: ${{ inputs.suite }}
@@ -247,19 +247,19 @@ runs:
           fi
         done
         if ! cd "$GITHUB_WORKSPACE" 2>/dev/null; then
-          emit_agentci_diagnostic error "Agent CI could not enter GITHUB_WORKSPACE."
+          emit_agentci_diagnostic error "OutcomeGate could not enter GITHUB_WORKSPACE."
           exit 2
         fi
         if ! mkdir -p -- "$(dirname -- "$agentci_report_target")" "$(dirname -- "$agentci_markdown_target")" 2>/dev/null; then
-          emit_agentci_diagnostic error "Agent CI could not create the configured evidence directories."
+          emit_agentci_diagnostic error "OutcomeGate could not create the configured evidence directories."
           exit 2
         fi
         if ! rm -f -- "$agentci_report_target" "$agentci_markdown_target" 2>/dev/null; then
-          emit_agentci_diagnostic error "Agent CI could not clear the configured evidence outputs."
+          emit_agentci_diagnostic error "OutcomeGate could not clear the configured evidence outputs."
           exit 2
         fi
         if ! agentci_temp_dir="$(mktemp -d "${RUNNER_TEMP:?}/agentci.XXXXXX" 2>/dev/null)"; then
-          emit_agentci_diagnostic error "Agent CI could not create its temporary evidence directory."
+          emit_agentci_diagnostic error "OutcomeGate could not create its temporary evidence directory."
           exit 2
         fi
         cleanup_agentci_temp_dir() {
@@ -291,31 +291,31 @@ runs:
         agentci_publication_failed=0
         if [[ -f "$agentci_json" ]]; then
           if ! cp -- "$agentci_json" "$agentci_report_target" 2>/dev/null; then
-            emit_agentci_diagnostic error "Agent CI could not publish the JSON evidence report."
+            emit_agentci_diagnostic error "OutcomeGate could not publish the JSON evidence report."
             agentci_publication_failed=1
           fi
         elif [[ "$agentci_status" -eq 0 ]]; then
-          emit_agentci_diagnostic error "Agent CI passed without producing its JSON evidence report."
+          emit_agentci_diagnostic error "OutcomeGate passed without producing its JSON evidence report."
           agentci_publication_failed=1
         fi
         if [[ -f "$agentci_markdown" ]]; then
           if ! cp -- "$agentci_markdown" "$agentci_markdown_target" 2>/dev/null; then
-            emit_agentci_diagnostic error "Agent CI could not publish the Markdown evidence report."
+            emit_agentci_diagnostic error "OutcomeGate could not publish the Markdown evidence report."
             agentci_publication_failed=1
           fi
         elif [[ "$agentci_status" -eq 0 ]]; then
-          emit_agentci_diagnostic error "Agent CI passed without producing its Markdown evidence report."
+          emit_agentci_diagnostic error "OutcomeGate passed without producing its Markdown evidence report."
           agentci_publication_failed=1
         fi
 
         if [[ -n "${GITHUB_STEP_SUMMARY:-}" ]]; then
           if [[ -f "$agentci_markdown" ]]; then
             if ! cat -- "$agentci_markdown" >> "$GITHUB_STEP_SUMMARY" 2>/dev/null; then
-              emit_agentci_diagnostic warning "Agent CI could not append Markdown evidence to the job summary."
+              emit_agentci_diagnostic warning "OutcomeGate could not append Markdown evidence to the job summary."
               agentci_publication_failed=1
             fi
           else
-            emit_agentci_diagnostic warning "Agent CI did not produce the configured sanitized Markdown report."
+            emit_agentci_diagnostic warning "OutcomeGate did not produce the configured sanitized Markdown report."
             agentci_publication_failed=1
           fi
         fi

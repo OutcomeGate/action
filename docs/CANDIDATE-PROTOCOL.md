@@ -1,6 +1,6 @@
 # Candidate release and JSONL-v1 protocol
 
-Agent CI v0.3 executes a candidate as a Node.js child process. The release-v2
+OutcomeGate v0.3 executes a candidate as a Node.js child process. The release-v2
 manifest captures the exact entry point, bundle bytes, prompt files, tool-schema
 files, model declaration, and candidate credential policy used for the check.
 
@@ -68,7 +68,7 @@ node dist/src/cli.js validate-release \
 
 ## Process invocation
 
-For each scenario, Agent CI runs the current Node executable with the captured
+For each scenario, OutcomeGate runs the current Node executable with the captured
 entry file as its only argument. The working directory is the directory that
 contains that entry file. Ambient environment variables are not copied into
 the candidate process. With `candidate.credentials.kind: "none"`, its process

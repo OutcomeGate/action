@@ -355,7 +355,7 @@ test("a release-v2 digest grant supplies only declared candidate credentials", a
     candidateCallerAllowlist: ["MODEL_PROVIDER_KEY"],
     approvedReleaseDigest: capture.identity.releaseDigest,
     candidateSourceEnv: {
-      MODEL_PROVIDER_KEY: "PASS sanitized Agent CI publication",
+      MODEL_PROVIDER_KEY: "PASS sanitized OutcomeGate publication",
     },
     requireExplicitCandidatePolicy: true,
   });
@@ -430,8 +430,8 @@ test("a release-v2 digest grant supplies only declared candidate credentials", a
     "--github",
   ];
   for (const githubCredential of [
-    "Agent CI block: scenario 1",
-    "::error title=Agent CI block%3A scenario 1::Sanitized annotation: inspect protected local evidence for details.\n",
+    "OutcomeGate block: scenario 1",
+    "::error title=OutcomeGate block%3A scenario 1::Sanitized annotation: inspect protected local evidence for details.\n",
   ]) {
     const annotationCollision = await runCli(githubArgs, {
       MODEL_PROVIDER_KEY: githubCredential,
